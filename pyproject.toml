@@ -1,0 +1,91 @@
+[project]
+name = "glossator"
+dynamic = ["version"]  # glossator.__version__ (src/glossator/__init__.py)
+description = "Scientific bibliographies kept in git by Claude agents: every fact with its page, every quote and number proven to be in the paper."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Camil Ziane" }]
+requires-python = ">=3.11"
+keywords = ["bibliography", "literature review", "zotero", "claude", "mcp", "rag", "citations", "research"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Text Processing :: Indexing",
+]
+dependencies = [
+    # embeddings for the semantic search: a build on the CPU (the default), a CUDA GPU (the `gpu` extra) or Metal
+    "sentence-transformers>=3",
+    "onnxruntime>=1.20", # a query's vector, on the CPU, without loading PyTorch
+    "torch>=2.7,<2.11",
+    "mcp>=2.3,<3", # the server `glossator mcp`
+    "pillow>=10", # the coordinate grid `page` draws on a page render
+]
+
+[project.optional-dependencies]
+# PyTorch with CUDA (PyPI's Linux build: CUDA 12 up to 2.10, an NVIDIA driver 525 or later; several GB):
+#     uv run --extra gpu --no-group cpu glossator build   (a plain `uv run` returns to the CPU build)
+gpu = ["torch>=2.7,<2.11"]
+
+[project.urls]
+Homepage = "https://github.com/camilziane/glossator"
+Documentation = "https://github.com/camilziane/glossator/tree/main/docs"
+Repository = "https://github.com/camilziane/glossator"
+Issues = "https://github.com/camilziane/glossator/issues"
+Changelog = "https://github.com/camilziane/glossator/blob/main/CHANGELOG.md"
+
+[project.scripts]
+glossator = "glossator.cli:main"
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "src/glossator/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/glossator"]
+
+[dependency-groups]
+# The contributors' tools, not installed by a plain `uv sync`: `uv sync --group dev` (CONTRIBUTING.md, CI).
+dev = [
+    "pytest>=8",
+    "ruff>=0.6",
+]
+# PyTorch's CPU build on Linux (about 200 MB instead of several GB of CUDA libraries); macOS takes PyPI's (Metal).
+cpu = ["torch>=2.7,<2.11"]
+
+[tool.uv]
+default-groups = ["cpu"]
+environments = ["sys_platform == 'linux'", "sys_platform == 'darwin'"]
+conflicts = [[{ group = "cpu" }, { extra = "gpu" }]]
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", group = "cpu", marker = "sys_platform == 'linux'" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["E501"]  # long lines are wrapped by hand where it reads better
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,21 @@
+# dependencies
+/node_modules
+
+# Next.js: one build dir per dev server (NEXT_DIST_DIR=.next-<role>), the static export
+/.next*/
+/out/
+next-env.d.ts
+*.tsbuildinfo
+
+# tests
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/coverage/
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+.env*

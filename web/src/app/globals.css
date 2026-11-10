@@ -1,0 +1,846 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/*
+ * The design language: "a plain serif page with red page numbers in the margin". Paper, ink, one
+ * rubric red for structure; hairlines and space instead of cards; the serif for every word that is
+ * read, a quiet sans for controls and data, a mono for tokens. ARCHITECTURE.md 3 documents every
+ * token, utility and rule here; the contrast of each text pair is measured there (oklch -> sRGB).
+ */
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* Colours: the shadcn names features use, mapped onto the paper tokens below. */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* The paper tokens by their own names (bg-paper, text-ink, bg-wash, border-rule, text-rubric…). */
+  --color-paper: var(--background);
+  --color-ink: var(--foreground);
+  --color-wash: var(--muted);
+  --color-rule: var(--border);
+  --color-rule-strong: var(--rule-strong);
+  --color-rubric: var(--rubric);
+
+  /* The app's semantic colours (text-link, bg-highlight, text-warning…). */
+  --color-link: var(--link);
+  --color-highlight: var(--highlight);
+  --color-highlight-foreground: var(--highlight-foreground);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-star: var(--star);
+
+  /* Faces: next/font's variables (src/app/fonts.ts) first, then fallbacks. */
+  --font-serif:
+    var(--font-source-serif), "Source Serif 4", Georgia, Cambria, "Times New Roman", serif;
+  --font-sans:
+    var(--font-plex-sans), "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  --font-mono:
+    var(--font-plex-mono), "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-heading: var(--font-serif);
+
+  /* Regular text is 380 on dark (light on dark reads heavier), 400 on light. */
+  --font-weight-normal: var(--weight-regular);
+
+  /* Shape: 0 for content (no utility needed), 4 px for controls; nothing rounder (no pills). */
+  --radius-xs: 1px;
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: var(--radius);
+  --radius-xl: var(--radius);
+  --radius-2xl: var(--radius);
+  --radius-3xl: var(--radius);
+  --radius-4xl: var(--radius);
+
+  /* The only raised surfaces: popovers, menus, dialogs, the drawer. */
+  --shadow-popover: var(--popover-shadow);
+}
+
+@theme {
+  /*
+   * The one type scale (POLISH 3): every size of the app is one of these, size and line height
+   * together. No arbitrary text-[…] sizes in features.
+   */
+  --text-display: 2.125rem; /* 34/38: an article's title */
+  --text-display--line-height: 2.375rem;
+  --text-title: 1.375rem; /* 22/28: h1, section h2, the reading pane's title */
+  --text-title--line-height: 1.75rem;
+  --text-lede: 1.25rem; /* 20/29: the one-liner, Today's sentence */
+  --text-lede--line-height: 1.8125rem;
+  --text-read: 1.0625rem; /* 17/27: prose and field values */
+  --text-read--line-height: 1.6875rem;
+  --text-note: 0.9375rem; /* 15/22: descriptions, one-liners and cite lines in lists */
+  --text-note--line-height: 1.375rem;
+  --text-item: 0.96875rem; /* 15.5/21: titles in lists, rows, the palette */
+  --text-item--line-height: 1.3125rem;
+  --text-gloss: 0.84375rem; /* 13.5/19: margin notes and quotes, facts values, captions */
+  --text-gloss--line-height: 1.1875rem;
+  --text-ui: 0.875rem; /* 14/20: the interface */
+  --text-ui--line-height: 1.25rem;
+  --text-table: 0.84375rem; /* 13.5/19: table bodies (sans at 92 % width) */
+  --text-table--line-height: 1.1875rem;
+  --text-small: 0.78125rem; /* 12.5/17: meta, authors, sources */
+  --text-small--line-height: 1.0625rem;
+  --text-label: 0.84375rem; /* 13.5/18: labels in small caps */
+  --text-label--line-height: 1.125rem;
+  --text-kbd: 0.75rem; /* 12: key caps */
+  --text-kbd--line-height: 1rem;
+
+  /* max-w-measure: one measure for sentences. max-w-page: the widest a page grows. */
+  --container-measure: 34rem;
+  --container-page: 76rem;
+
+  /* Motion (DESIGN 12): enter with ease-out, nothing bounces, exits faster than entrances. */
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --default-transition-duration: 150ms;
+  --default-transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+
+  --animate-fade-in: fade-in 150ms cubic-bezier(0.2, 0, 0, 1) both;
+  --animate-fade-out: fade-out 90ms cubic-bezier(0.4, 0, 1, 1) both;
+  --animate-pop-in: pop-in 150ms cubic-bezier(0.2, 0, 0, 1) both;
+  --animate-pop-out: fade-out 90ms cubic-bezier(0.4, 0, 1, 1) both;
+  --animate-dialog-in: dialog-in 200ms cubic-bezier(0.2, 0, 0, 1) both;
+  --animate-dialog-out: dialog-out 120ms cubic-bezier(0.4, 0, 1, 1) both;
+  --animate-skeleton-in: fade-in 150ms cubic-bezier(0.2, 0, 0, 1) 200ms both;
+  --animate-indeterminate: indeterminate 1.1s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+/* Keyframes stay outside @theme so they are emitted whatever uses them (classes or plain CSS). */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+/* From the trigger: 4 px on the side it opens from, scale 0.97 (origin: the trigger). */
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translate(var(--pop-x, 0), var(--pop-y, 0)) scale(0.97);
+  }
+}
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+@keyframes dialog-out {
+  to {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+@keyframes sheet-in-right {
+  from {
+    transform: translateX(100%);
+  }
+}
+@keyframes sheet-out-right {
+  to {
+    transform: translateX(100%);
+  }
+}
+@keyframes sheet-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+}
+@keyframes sheet-out-left {
+  to {
+    transform: translateX(-100%);
+  }
+}
+@keyframes sheet-in-bottom {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes sheet-out-bottom {
+  to {
+    transform: translateY(100%);
+  }
+}
+@keyframes sheet-in-top {
+  from {
+    transform: translateY(-100%);
+  }
+}
+@keyframes sheet-out-top {
+  to {
+    transform: translateY(-100%);
+  }
+}
+@keyframes indeterminate {
+  from {
+    transform: translateX(-100%) scaleX(0.4);
+  }
+  to {
+    transform: translateX(100%) scaleX(0.4);
+  }
+}
+
+/* ---------------------------------------------------------------------- tokens */
+
+:root {
+  color-scheme: light;
+  --radius: 0.25rem; /* 4 px: controls */
+  --header-height: 3rem; /* the 48 px top bar */
+  --measure: 34rem;
+  --weight-regular: 400;
+
+  /* Motion durations (DESIGN 12). */
+  --dur-press: 90ms; /* press, exits */
+  --dur-hover: 150ms; /* hover, menus, popovers */
+  --dur-dialog: 200ms; /* dialogs, sheets */
+  --dur-panel: 240ms; /* row collapse, panels */
+
+  /* Paper and ink. */
+  --background: oklch(0.972 0.012 85); /* paper */
+  --foreground: oklch(0.22 0.012 60); /* ink */
+  --muted-foreground: oklch(0.48 0.012 70); /* muted ink */
+  --border: oklch(0.885 0.012 80); /* rule: hairlines */
+  --rule-strong: oklch(0.8 0.012 75); /* a control's hairline */
+  --input: oklch(0.62 0.012 75); /* a field's or a checkbox's edge (>= 3:1, WCAG 1.4.11) */
+  --muted: oklch(0.95 0.012 85); /* wash: hover rows, selected row, code, kbd */
+  --popover: oklch(0.985 0.008 85); /* the only raised surface */
+  --rubric: oklch(0.52 0.165 32);
+  --highlight: oklch(0.94 0.06 95); /* <mark> */
+  --danger: oklch(0.45 0.17 20);
+  --warning: oklch(0.5 0.11 65);
+  --success: oklch(0.46 0.09 150);
+  --popover-shadow: 0 1px 0 var(--border), 0 8px 24px oklch(0 0 0 / 8%);
+
+  /* The shadcn names, mapped. */
+  --card: var(--background);
+  --card-foreground: var(--foreground);
+  --popover-foreground: var(--foreground);
+  --primary: var(--foreground);
+  --primary-foreground: var(--background);
+  --secondary: var(--muted);
+  --secondary-foreground: var(--foreground);
+  --accent: var(--muted);
+  --accent-foreground: var(--foreground);
+  --destructive: var(--danger);
+  --ring: var(--foreground);
+  --link: var(--foreground);
+  --highlight-foreground: var(--foreground);
+  --star: var(--muted-foreground);
+  --danger-soft: color-mix(in oklab, var(--danger) 7%, var(--background));
+  --warning-soft: color-mix(in oklab, var(--warning) 8%, var(--background));
+  --success-soft: color-mix(in oklab, var(--success) 7%, var(--background));
+
+  /* Charts are ink, never rubric. */
+  --chart-1: var(--foreground);
+  --chart-2: oklch(0.48 0.012 70);
+  --chart-3: oklch(0.62 0.012 75);
+  --chart-4: oklch(0.75 0.012 80);
+  --chart-5: oklch(0.85 0.012 80);
+
+  /* The former sidebar (the shell replaces it with a top bar). */
+  --sidebar: var(--background);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--foreground);
+  --sidebar-primary-foreground: var(--background);
+  --sidebar-accent: var(--muted);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+}
+
+.dark {
+  color-scheme: dark;
+  --weight-regular: 380;
+
+  --background: oklch(0.205 0.008 70);
+  --foreground: oklch(0.9 0.014 85);
+  --muted-foreground: oklch(0.7 0.012 80);
+  --border: oklch(0.32 0.01 70);
+  --rule-strong: oklch(0.42 0.01 70);
+  --input: oklch(0.55 0.01 75);
+  --muted: oklch(0.235 0.008 70);
+  --popover: oklch(0.235 0.009 70);
+  --rubric: oklch(0.72 0.13 38);
+  --highlight: oklch(0.4 0.07 95);
+  --danger: oklch(0.74 0.14 22);
+  --warning: oklch(0.8 0.11 80);
+  --success: oklch(0.78 0.1 150);
+  /* On dark paper a shadow barely shows: a hairline all round defines the raised surface. */
+  --popover-shadow: 0 0 0 1px var(--border), 0 8px 24px oklch(0 0 0 / 40%);
+
+  /* Inside a popover (itself the wash's lightness) a hovered row needs a step more. */
+  --accent: oklch(0.275 0.009 70);
+  --danger-soft: color-mix(in oklab, var(--danger) 12%, var(--background));
+  --warning-soft: color-mix(in oklab, var(--warning) 10%, var(--background));
+  --success-soft: color-mix(in oklab, var(--success) 10%, var(--background));
+
+  --chart-2: oklch(0.7 0.012 80);
+  --chart-3: oklch(0.55 0.01 75);
+  --chart-4: oklch(0.42 0.01 70);
+  --chart-5: oklch(0.32 0.01 70);
+}
+
+/* ---------------------------------------------------------------------- type utilities */
+
+/* Prose: lists, paragraphs, summaries. Pair with max-w-measure. */
+@utility reading {
+  font-family: var(--font-serif);
+  font-size: var(--text-read);
+  line-height: var(--text-read--line-height);
+  font-optical-sizing: auto;
+  font-variant-numeric: oldstyle-nums proportional-nums;
+  text-wrap: pretty;
+  hyphens: auto;
+  hyphenate-limit-chars: 8 4 4;
+  overflow-wrap: break-word;
+}
+
+/* The one-line summary, Today's opening sentence. */
+@utility lede {
+  font-family: var(--font-serif);
+  font-size: var(--text-lede);
+  line-height: var(--text-lede--line-height);
+  font-optical-sizing: auto;
+  font-variant-numeric: oldstyle-nums proportional-nums;
+  text-wrap: pretty;
+  hyphens: auto;
+  hyphenate-limit-chars: 8 4 4;
+  @media (width < 48rem) {
+    font-size: 1.125rem;
+    line-height: 1.6875rem;
+  }
+}
+
+/* A note in the margin: quotes, sources, the inbox's reasons. */
+@utility gloss {
+  font-family: var(--font-serif);
+  font-size: var(--text-gloss);
+  line-height: var(--text-gloss--line-height);
+  color: var(--muted-foreground);
+  font-optical-sizing: auto;
+  font-variant-numeric: oldstyle-nums proportional-nums;
+  text-wrap: pretty;
+  hyphens: auto;
+  hyphenate-limit-chars: 8 4 4;
+}
+
+/* An article's title. */
+@utility display {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: var(--text-display);
+  line-height: var(--text-display--line-height);
+  letter-spacing: -0.005em;
+  font-optical-sizing: auto;
+  font-variant-numeric: lining-nums proportional-nums;
+  text-wrap: balance;
+  @media (width < 48rem) {
+    font-size: 1.625rem;
+    line-height: 1.875rem;
+  }
+}
+
+/* A page's h1, a section's h2, the reading pane's title. */
+@utility title {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: var(--text-title);
+  line-height: var(--text-title--line-height);
+  font-optical-sizing: auto;
+  font-variant-numeric: lining-nums proportional-nums;
+  text-wrap: balance;
+}
+
+/* A title in a list, a row, the palette: 15.5/21. */
+@utility item-title {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: var(--text-item);
+  line-height: var(--text-item--line-height);
+  font-optical-sizing: auto;
+  font-variant-numeric: lining-nums proportional-nums;
+  text-wrap: balance;
+}
+
+/* Every label: small caps of the serif, muted (replaces the 11 px uppercase eyebrow). */
+@utility label {
+  font-family: var(--font-serif);
+  font-variant-caps: all-small-caps;
+  font-variant-numeric: oldstyle-nums proportional-nums;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  color: var(--muted-foreground);
+}
+
+/** @deprecated The former 11 px uppercase eyebrow, now drawn as a label: use `label`. */
+@utility eyebrow {
+  font-family: var(--font-serif);
+  font-variant-caps: all-small-caps;
+  font-variant-numeric: oldstyle-nums proportional-nums;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  color: var(--muted-foreground);
+}
+
+/* A citation line: <span class="cite"><span class="au">Novak</span> &amp; <span class="au">Ito</span> 2024 · <i>Trans. Synth. Signals</i></span>. */
+@utility cite {
+  & .au {
+    font-variant-caps: small-caps;
+    letter-spacing: 0.03em;
+  }
+  & i {
+    font-family: var(--font-serif);
+    font-style: italic;
+  }
+}
+
+/* Numbers that line up or change: counts, priors, tables, the pager. */
+@utility num {
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* An acronym in serif text (<abbr class="ac">): small caps, a little air. */
+@utility ac {
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+
+/* Commands, keys, paths, hashes, file names, DOIs in tables. Nowhere else. */
+@utility mono {
+  font-family: var(--font-mono);
+  font-size: max(0.875em, 12px);
+  font-variant-ligatures: none;
+}
+
+/* One measure for sentences. */
+@utility measure {
+  max-width: var(--measure);
+}
+
+/* A text link: ink with a rubric underline that firms on hover. */
+@utility link {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  text-decoration-color: color-mix(in oklab, var(--rubric) 55%, transparent);
+  transition: text-decoration-color var(--dur-hover) var(--ease-out);
+  &:hover {
+    text-decoration-color: var(--rubric);
+  }
+}
+
+/* ---------------------------------------------------------------------- layout utilities */
+
+/*
+ * A table (or any box) that scrolls sideways shows it: shadows at the edges that can still scroll
+ * (Lea Verou's scrolling shadows: the covers move with the content, the shadows stay).
+ */
+@utility scroll-shadow {
+  overflow-x: auto;
+  background:
+    linear-gradient(to right, var(--background) 30%, transparent) left center / 2.5rem 100%
+      no-repeat local,
+    linear-gradient(to left, var(--background) 30%, transparent) right center / 2.5rem 100%
+      no-repeat local,
+    radial-gradient(
+        farthest-side at 0 50%,
+        color-mix(in oklab, var(--foreground) 16%, transparent),
+        transparent
+      )
+      left center / 0.875rem 100% no-repeat scroll,
+    radial-gradient(
+        farthest-side at 100% 50%,
+        color-mix(in oklab, var(--foreground) 16%, transparent),
+        transparent
+      )
+      right center / 0.875rem 100% no-repeat scroll;
+  background-color: var(--background);
+}
+
+/*
+ * Clamped text fades on its last line instead of "…", and only when it is cut: the shell's
+ * ClampObserver (one ResizeObserver) measures each box once per layout and sets `data-clamped` when
+ * its text overflows; the static mask applies there only. clamp-fade-2 / -3 (or --clamp-lines) lines.
+ * Print shows every line (see print).
+ */
+@utility clamp-fade-* {
+  --clamp-lines: --value(integer);
+  display: block;
+  max-height: calc(var(--clamp-lines, 2) * 1lh);
+  overflow: hidden;
+  &[data-clamped] {
+    mask-image: linear-gradient(#000, #000), linear-gradient(to right, #000 75%, transparent);
+    mask-size:
+      100% calc(100% - 1lh),
+      100% 1lh;
+    mask-position: top, bottom;
+    mask-repeat: no-repeat;
+  }
+}
+@utility truncate-fade {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  &[data-clamped] {
+    mask-image: linear-gradient(to right, #000 75%, transparent);
+  }
+}
+
+/* A sticky bar's hairline, shown once the page has scrolled (static where scroll timelines lack). */
+@utility sticky-edge {
+  box-shadow: 0 1px 0 var(--border);
+  @supports (animation-timeline: scroll()) {
+    animation: sticky-edge linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 32px;
+  }
+}
+@keyframes sticky-edge {
+  from {
+    box-shadow: 0 1px 0 transparent;
+  }
+  to {
+    box-shadow: 0 1px 0 var(--border);
+  }
+}
+
+/* A 1 px rubric line that grows with the page's scroll (an article's reading progress). */
+@utility reading-progress {
+  height: 1px;
+  background: var(--rubric);
+  transform-origin: left;
+  transform: scaleX(0);
+  @supports (animation-timeline: scroll()) {
+    animation: reading-progress linear both;
+    animation-timeline: scroll(root);
+  }
+}
+@keyframes reading-progress {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* A focus outline drawn inside (segmented options, clipped lists). */
+@utility focus-inset {
+  &:focus-visible {
+    outline-offset: -2px;
+  }
+}
+
+/* A landscape A4 page in print (the bibliography's wide table). */
+@utility print-wide {
+  @media print {
+    page: wide;
+  }
+}
+
+/* ---------------------------------------------------------------------- base */
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    font-family: var(--font-sans);
+    font-synthesis: none;
+    font-kerning: normal;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    /* The header, and an article's slim bar while it shows (--toc-bar-height, set by it). */
+    scroll-padding-top: calc(var(--header-height) + var(--toc-bar-height, 0px) + 1rem);
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-weight: var(--weight-regular);
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--rubric) 18%, transparent);
+  }
+  /*
+   * One focus ring on everything focusable: 2 px of ink, 2 px out (DESIGN 3). Controls draw it
+   * closer (inputs -1 px, segmented options inset); rows of menus and the palette show the wash and
+   * a rubric bar instead (their own rule, in the components).
+   */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  /* The focus a page gives itself on arrival shows no ring until the first key (page-entry.ts). */
+  [data-entry-focus]:focus-visible {
+    outline: none;
+  }
+  /* Search matches: a highlighter stroke under the words, no padding, no width change. */
+  mark {
+    background: none;
+    color: inherit;
+    box-shadow: inset 0 -0.42em 0 var(--highlight);
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+  code,
+  kbd,
+  samp {
+    font-family: var(--font-mono);
+    font-size: max(0.875em, 12px);
+    font-variant-ligatures: none;
+  }
+  abbr.ac {
+    text-decoration: none;
+  }
+  blockquote {
+    font-family: var(--font-serif);
+    font-variant-numeric: oldstyle-nums proportional-nums;
+    font-optical-sizing: auto;
+    text-wrap: pretty;
+    hyphens: auto;
+    hyphenate-limit-chars: 8 4 4;
+  }
+}
+
+/* ---------------------------------------------------------------------- toasts (sonner) */
+
+/* One line, the popover's surface, 200 ms in and 120 ms out, no icon but a pending one's spinner. */
+[data-sonner-toaster] [data-sonner-toast] {
+  font-family: var(--font-sans);
+  font-size: var(--text-ui);
+  line-height: var(--text-ui--line-height);
+  padding: 10px 14px;
+  box-shadow: var(--popover-shadow);
+  transition-duration: 200ms;
+  transition-timing-function: var(--ease-out);
+}
+[data-sonner-toaster] [data-sonner-toast][data-removed="true"] {
+  transition-duration: 120ms;
+  transition-timing-function: var(--ease-in);
+}
+[data-sonner-toaster] [data-sonner-toast]:not([data-type="loading"]) [data-icon] {
+  display: none;
+}
+[data-sonner-toaster] [data-sonner-toast] [data-content] {
+  display: flex;
+  flex-flow: row wrap;
+  column-gap: 0.5em;
+}
+[data-sonner-toaster] [data-sonner-toast] [data-title] {
+  font-weight: 500;
+}
+[data-sonner-toaster] [data-sonner-toast] [data-description] {
+  color: var(--muted-foreground);
+}
+
+/* ---------------------------------------------------------------------- touch */
+
+@media (pointer: coarse) {
+  [data-slot="button"],
+  [data-slot="toggle"],
+  [data-slot="toggle-group-item"],
+  [data-slot="select-trigger"],
+  [data-slot="tabs-trigger"] {
+    min-height: 44px;
+  }
+  [data-slot="button"][data-size^="icon"] {
+    min-width: 44px;
+  }
+  [data-slot="button"][data-size^="icon"] svg {
+    width: 20px;
+    height: 20px;
+  }
+  [data-slot="input"],
+  [data-slot="input-group"] {
+    min-height: 44px;
+  }
+  /* A row or a button acknowledges the finger (Tailwind makes the tap highlight transparent). */
+  [data-slot="button"]:not([data-variant="solid"], [data-variant="default"]):active,
+  [data-touch-row]:active {
+    background-color: var(--muted);
+  }
+  /* Inline links in text: a taller target without moving the lines. */
+  .link {
+    padding-block: 6px;
+    margin-block: -6px;
+  }
+}
+/*
+ * Key chips (`<Kbd hint>`, `data-kbd-hint`) show only while their control is hovered or has the
+ * keyboard's focus (the room stays: nothing moves); the ? dialog and the palette's footer show
+ * theirs always (`data-kbd-always` on a container). None on touch screens.
+ */
+[data-kbd-hint] {
+  opacity: 0;
+  transition: opacity var(--dur-hover, 150ms) var(--ease-out);
+}
+:is(
+    a,
+    button,
+    label,
+    summary,
+    [role="button"],
+    [role="link"],
+    [role="tab"],
+    [role="menuitem"],
+    [role="menuitemradio"],
+    [role="menuitemcheckbox"],
+    [role="option"],
+    [role="radio"]
+  ):is(:hover, :focus-visible)
+  [data-kbd-hint],
+[data-kbd-always] [data-kbd-hint],
+[data-kbd-hint][data-kbd-always] {
+  opacity: 1;
+}
+@media (hover: none) and (pointer: coarse) {
+  [data-kbd-hint] {
+    display: none !important;
+  }
+  /* A page mark is a link the finger must hit: a taller, wider target, the lines unmoved. */
+  .page-mark {
+    padding: 12px 6px;
+    margin: -12px -6px;
+  }
+}
+
+/* ---------------------------------------------------------------------- motion */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------------------------------------------------------------------- print */
+
+/*
+ * Paper is light whatever the screen shows: the dark tokens fall back to the light ones (muted ink
+ * and hairlines a step darker for toner), the chrome stays off the page, and the page carries its
+ * furniture: a running head (--print-head, a CSS string the page may set on <html>) and the folio.
+ */
+@page {
+  size: A4;
+  margin: 16mm 15mm 18mm;
+  @top-left {
+    content: var(--print-head, "");
+    font: 8pt var(--font-sans, sans-serif);
+    color: oklch(0.42 0.012 70);
+  }
+  @bottom-right {
+    content: counter(page) " / " counter(pages);
+    font: 8pt var(--font-sans, sans-serif);
+    color: oklch(0.42 0.012 70);
+  }
+}
+@page wide {
+  size: A4 landscape;
+  margin: 12mm 10mm;
+}
+
+@media print {
+  :root,
+  .dark {
+    color-scheme: light;
+    --weight-regular: 400;
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.2 0.012 60);
+    --muted-foreground: oklch(0.42 0.012 70);
+    --border: oklch(0.8 0.01 80);
+    --rule-strong: oklch(0.72 0.012 75);
+    --input: oklch(0.62 0.012 75);
+    --muted: oklch(0.95 0.012 85);
+    --popover: oklch(1 0 0);
+    --rubric: oklch(0.52 0.165 32);
+    --highlight: oklch(0.94 0.06 95);
+    --danger: oklch(0.45 0.17 20);
+    --warning: oklch(0.5 0.11 65);
+    --success: oklch(0.46 0.09 150);
+    --accent: var(--muted);
+    --popover-shadow: none;
+  }
+
+  [data-slot="sidebar"],
+  [data-print="hide"] {
+    display: none !important;
+  }
+
+  /* White paper and dark ink, whatever the screen's theme. */
+  html {
+    color-scheme: light !important;
+    background: #fff;
+  }
+  /*
+   * Every line on paper: no fade, no clamp, nothing cut. The hub's table cells keep their own print
+   * clamp (`data-clamp`, `data-cut`: a row as many lines as the Rows setting says).
+   */
+  :is([class*="clamp-fade"], .truncate-fade, [data-clamped]):not([data-clamp], [data-cut]) {
+    max-height: none !important;
+    mask-image: none !important;
+    -webkit-line-clamp: unset !important;
+    line-clamp: unset !important;
+    overflow: visible !important;
+    white-space: normal !important;
+  }
+  /* A table's head repeats on each page, its labels shown. */
+  thead {
+    display: table-header-group;
+  }
+  thead th {
+    position: static !important;
+    color: var(--muted-foreground);
+  }
+}

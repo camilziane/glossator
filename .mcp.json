@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "glossator": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "--quiet", "glossator", "mcp"],
+      "env": {
+        "GLOSSATOR_HOME": "${GLOSSATOR_HOME:-.}"
+      }
+    }
+  }
+}

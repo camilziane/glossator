@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use Glossator in your research, please cite it as below."
+type: software
+title: "Glossator"
+abstract: >-
+  Scientific bibliographies kept in git by Claude agents: every fact with its page, every quote and number proven to
+  be in the paper, a local search index and an MCP server, a daily inbox of new papers, and Zotero kept in step.
+authors:
+  - given-names: Camil
+    family-names: Ziane
+version: 0.1.0
+date-released: "2026-11-10"
+license: MIT
+repository-code: "https://github.com/camilziane/glossator"
+url: "https://github.com/camilziane/glossator"
+keywords:
+  - bibliography
+  - literature review
+  - citations
+  - Zotero
+  - Claude
+  - MCP
+  - research software

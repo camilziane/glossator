@@ -1,0 +1,13 @@
+__pycache__/
+# written by `glossator build` on each computer: the page, the search index, the Zotero library, the manifest
+/build/
+/demo/build/
+# the bibliographies: a git repository of their own (glossator init, or glossator join)
+/library/
+# the tool's uv environment and caches
+.venv/
+.pytest_cache/
+.ruff_cache/
+.DS_Store
+# the curator agent's own memory (each computer keeps its own)
+/.claude/agent-memory/

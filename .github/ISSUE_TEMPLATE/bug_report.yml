@@ -1,0 +1,55 @@
+name: Bug report
+description: Something glossator does wrong, or a command that fails.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. **Never paste a Zotero key, a token, a record, a PDF or text from your own
+        bibliographies:** reproduce the problem on the demo (`GLOSSATOR_HOME=demo`) when you can, and shorten paths.
+        A security problem goes through [private vulnerability reporting](https://github.com/camilziane/glossator/security/advisories/new) instead.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: The command and its output
+      description: The exact command, then what it printed (trimmed, without private data).
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: glossator version
+      description: "`uv run glossator --version`, or the commit (`git rev-parse --short HEAD`)."
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, `uv --version`, `uv run python --version`, `claude --version` (for curate and the inbox), `node --version` (for the page), CPU or GPU build.
+      render: text
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - curation (curate, check)
+        - search, MCP server
+        - the page (serve, web)
+        - daily inbox
+        - Zotero
+        - several computers (sync)
+        - installation
+        - other
+    validations:
+      required: true

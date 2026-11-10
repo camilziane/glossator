@@ -1,0 +1,2 @@
+# This library's settings (every key is optional; see src/glossator/settings.py).
+language = "English"   # the inbox's summaries

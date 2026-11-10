@@ -1,0 +1,221 @@
+{
+  "schema": 1,
+  "key": "jumper2021",
+  "status": "complete",
+  "kind": "architecture",
+  "bib": {
+    "title": "Highly accurate protein structure prediction with AlphaFold",
+    "authors": [
+      "John Jumper",
+      "Richard Evans",
+      "Alexander Pritzel",
+      "Tim Green",
+      "Michael Figurnov",
+      "Olaf Ronneberger",
+      "Kathryn Tunyasuvunakool",
+      "Russ Bates",
+      "Augustin Žídek",
+      "Anna Potapenko",
+      "Alex Bridgland",
+      "Clemens Meyer",
+      "Simon A. A. Kohl",
+      "Andrew J. Ballard",
+      "Andrew Cowie",
+      "Bernardino Romera-Paredes",
+      "Stanislav Nikolov",
+      "Rishub Jain",
+      "Jonas Adler",
+      "Trevor Back",
+      "Stig Petersen",
+      "David Reiman",
+      "Ellen Clancy",
+      "Michal Zielinski",
+      "Martin Steinegger",
+      "Michalina Pacholska",
+      "Tamas Berghammer",
+      "Sebastian Bodenstein",
+      "David Silver",
+      "Oriol Vinyals",
+      "Andrew W. Senior",
+      "Koray Kavukcuoglu",
+      "Pushmeet Kohli",
+      "Demis Hassabis"
+    ],
+    "year": 2021,
+    "date": "2021-07-15",
+    "venue": "Nature",
+    "venue_short": "Nature",
+    "volume": "596",
+    "issue": "7873",
+    "pages": "583–589",
+    "doi": "10.1038/s41586-021-03819-2",
+    "pmid": "34265844",
+    "pmcid": "PMC8371605",
+    "openalex": "W3177828909",
+    "type": "journal-article",
+    "cite": "Jumper et al. 2021, Nature",
+    "place": "DeepMind, London",
+    "lab": "not reported"
+  },
+  "paper": {
+    "file": "paper.pdf",
+    "version": "publishedVersion",
+    "source_url": "https://pmc-oa-opendata.s3.amazonaws.com/PMC8371605.2/PMC8371605.2.pdf",
+    "host": "PubMed Central open data (AWS)",
+    "license": "cc-by",
+    "pages": 12,
+    "sha256": "6eae057a9faf4f671c3101e0745ed704460c6d3dec77243dfd3a9f2d2ab68970",
+    "retrieved": "2026-11-10",
+    "note": "none"
+  },
+  "supplementary": {
+    "status": "partial",
+    "note": "Supplementary Information (62 pages: Supplementary Methods 1.1–1.16, algorithms, figures, tables) and Nature Research Reporting Summary retrieved from PubMed Central open data. Four supplementary videos (MP4, Supplementary Videos 1–4, structure trajectories) are not downloaded: not a text format. The Reporting Summary is also printed in paper.pdf (p. 11).",
+    "files": [
+      {
+        "file": "supplementary/41586_2021_3819_MOESM1_ESM.pdf",
+        "label": "Supplementary Information",
+        "source_url": "https://pmc-oa-opendata.s3.amazonaws.com/PMC8371605.2/41586_2021_3819_MOESM1_ESM.pdf",
+        "sha256": "17a9989ef8632c15ee15f0c535f75e8df5c9878496eee48914c825e72555a737",
+        "bytes": 7675600,
+        "pages": 62
+      },
+      {
+        "file": "supplementary/41586_2021_3819_MOESM2_ESM.pdf",
+        "label": "Reporting Summary",
+        "source_url": "https://pmc-oa-opendata.s3.amazonaws.com/PMC8371605.2/41586_2021_3819_MOESM2_ESM.pdf",
+        "sha256": "5bdc6403f2a5ac715efdb1a7a4a916e2c2f1551cede0e67f4305f1b1cf8516bb",
+        "bytes": 64711,
+        "pages": 2
+      }
+    ]
+  },
+  "figures": [
+    {
+      "role": "main",
+      "file": "figures/main.png",
+      "from": "Fig. 1a, p. 2 (PDF page 2; journal p. 584)",
+      "caption": "Median Cα r.m.s.d.95 of AlphaFold (group G427, highlighted) and the top-15 CASP14 entries, 87 domains, with 95% confidence intervals of the median"
+    }
+  ],
+  "overview": {
+    "one_line": "AlphaFold, a neural network that predicts 3D protein structure from sequence and MSAs, reached a median backbone accuracy of 0.96 Å r.m.s.d.95 in CASP14 against 2.8 Å for the next best method.",
+    "abstract": [
+      "The paper presents a redesigned AlphaFold that predicts the 3D coordinates of all heavy atoms of a protein from its amino acid sequence and a multiple sequence alignment of homologues. It combines a trunk of 48 Evoformer blocks, which exchange information between an MSA representation and a pair representation, with a structure module that refines a rotation and translation for each residue.",
+      "The model is trained end to end on PDB structures, with auxiliary losses, a masked-MSA objective and self-distillation on about 350,000 Uniclust30 sequences. In the blind CASP14 assessment it reached a median Cα r.m.s.d.95 of 0.96 Å on 87 domains, and on a set of 3,144 recent PDB chains the overall median was 1.46 Å.",
+      "The paper also reports a per-residue confidence score (pLDDT), ablations of each component, and limits: accuracy drops when the median MSA depth is below about 30 sequences, and for chains whose shape depends mostly on contacts with other chains."
+    ]
+  },
+  "details": {
+    "problem": "Predicting the 3D structure a protein adopts from its amino acid sequence alone, at near-experimental (atomic) accuracy even when no similar structure is known.",
+    "idea": "Treat structure prediction as a graph inference problem in 3D space, with a network that jointly embeds the MSA and residue-pair features and directly outputs atom coordinates. Physical and geometric constraints (triangle-based pair updates, an equivariant structure module) are built into the architecture, and the network is refined iteratively by recycling.",
+    "architecture": "Two stages (Fig. 1e, Fig. 3). Trunk: 48 Evoformer blocks without shared weights, which update an Nseq × Nres MSA representation and an Nres × Nres pair representation (row-wise and column-wise gated self-attention, outer product mean, triangle multiplicative updates with outgoing and incoming edges, triangle self-attention around starting and ending node, transitions). Structure module: 8 blocks with shared weights, with invariant point attention (IPA) and an equivariant update of per-residue backbone frames (residue gas), side-chain χ angles, pLDDT and pTM heads. Whole-network recycling (three times in Fig. 1e). Loss: frame-aligned point error (FAPE) plus auxiliary losses.",
+    "input": "Primary sequence, an MSA built with jackhmmer and HHBlits (UniRef90, BFD, Uniclust30, MGnify), and the 3D coordinates of a small number of homologous template structures where available.",
+    "training": "Supervised on PDB structures with release date up to 30 April 2018 (PDB copy of 28 August 2019), chains sampled in inverse proportion to 40%-identity cluster size, cropped to 256 residues, batch size 128 on 128 TPU v3 cores, trained to convergence (around 10 million samples, about 1 week) then fine-tuned with 384-residue crops (about 4 days). Losses: FAPE, distogram, BERT-like masked-MSA, per-residue lDDT-Cα, side-chain, and a structure violation loss during fine-tuning. Final model trained with self-distillation on 355,993 Uniclust sequences predicted by an initial model (75% of samples from the predicted set, 25% from the PDB). Five models with different seeds, with or without templates; the best per target is chosen by predicted confidence.",
+    "datasets": "CASP14 (87 protein domains, blind test, May–July 2020); a set of recent PDB chains released after 30 April 2018 (10,795 chains after filtering; 3,144 chains without close training templates for Fig. 2a; 2,261 chains for the ablations in Fig. 4a); ablations also on CASP14 domains.",
+    "cost": "Parameter count: not reported in the main text. Training: about 1 week plus about 4 days of fine-tuning on 128 TPU v3 cores. Inference, single model on a V100 GPU, without ensembling: 0.6 min for 256 residues, 1.1 min for 384 residues, 2.1 h for 2,500 residues; with ensembling: 4.8 min, 9.2 min and 18 h (Methods, Inference regimen).",
+    "code": "https://github.com/deepmind/alphafold: source code, trained weights and inference script under an open-source license (licence name not given in the paper).",
+    "figure": "Fig. 1a (CASP14 accuracy, p. 2) and Fig. 1e (architecture, p. 2)",
+    "source": "pp. 1–6 (main text); Fig. 1, Fig. 3; p. 8–9 Methods (Inputs and data sources, Training regimen, Inference regimen, Metrics, Test set of recent PDB sequences); p. 9 Code availability"
+  },
+  "results": [
+    {
+      "name": "Median backbone accuracy, Cα r.m.s.d.95 (Cα root-mean-square deviation at 95% residue coverage), AlphaFold",
+      "value": "0.96 Å (95% confidence interval = 0.85–1.16 Å)",
+      "condition": "CASP14, 87 protein domains",
+      "baseline": "next best performing method: 2.8 Å r.m.s.d.95 (95% confidence interval = 2.7–4.0 Å)",
+      "headline": true,
+      "source": "p. 2 (journal p. 584), main text; Fig. 1a"
+    },
+    {
+      "name": "Median all-atom accuracy, r.m.s.d.95, AlphaFold",
+      "value": "1.5 Å (95% confidence interval = 1.2–1.6 Å)",
+      "condition": "CASP14 domains",
+      "baseline": "best alternative method: 3.5 Å r.m.s.d.95 (95% confidence interval = 3.1–4.2 Å)",
+      "headline": true,
+      "source": "p. 2 (journal p. 584), main text"
+    },
+    {
+      "name": "Overall median full-chain backbone r.m.s.d. (Cα r.m.s.d. at 95% coverage)",
+      "value": "1.46 Å (95% confidence interval = 1.40–1.56 Å)",
+      "condition": "recent PDB chains released after the training cut-off, excluding chains with a training-set template of more than 40% identity covering more than 1% of the chain (n = 3,144 chains)",
+      "baseline": "not reported",
+      "headline": false,
+      "source": "p. 3 (journal p. 585), Fig. 2a legend"
+    },
+    {
+      "name": "Pearson correlation between pLDDT and lDDT-Cα",
+      "value": "r = 0.76",
+      "condition": "recent PDB chains, n = 10,795; fit lDDT-Cα = 0.997 × pLDDT − 1.17",
+      "baseline": "not reported",
+      "headline": false,
+      "source": "p. 3, Fig. 2c legend"
+    },
+    {
+      "name": "Pearson correlation between pTM and full-chain TM-score",
+      "value": "r = 0.85",
+      "condition": "recent PDB chains, n = 10,795; fit TM-score = 0.98 × pTM + 0.07",
+      "baseline": "not reported",
+      "headline": false,
+      "source": "p. 3, Fig. 2d legend"
+    },
+    {
+      "name": "Single-model inference time on a V100 GPU, without ensembling",
+      "value": "1.1 min",
+      "condition": "384 residues (0.6 min for 256 residues; 2.1 h for 2,500 residues)",
+      "baseline": "with ensembling: 9.2 min for 384 residues",
+      "headline": false,
+      "source": "p. 9, Methods (Inference regimen)"
+    }
+  ],
+  "quotes": [
+    {
+      "text": "AlphaFold structures had a median backbone accuracy of 0.96 Å r.m.s.d.95 (Cα root-mean-square deviation at 95% residue coverage) (95% confidence interval = 0.85–1.16 Å) whereas the next best performing method had a median backbone accuracy of 2.8 Å r.m.s.d.95 (95% confidence interval = 2.7–4.0 Å) (measured on CASP domains; see Fig. 1a for backbone accuracy and Supplementary Fig. 14 for all-atom accuracy).",
+      "where": "p. 2 (journal p. 584), main text",
+      "in": "this paper"
+    },
+    {
+      "text": "The key principle of the building block of the network—named Evoformer (Figs. 1e, 3a)—is to view the prediction of protein structures as a graph inference problem in 3D space in which the edges of the graph are defined by residues in proximity.",
+      "where": "p. 3 (journal p. 585), Evoformer",
+      "in": "this paper"
+    },
+    {
+      "text": "The model uses MSAs and the accuracy decreases substantially when the median alignment depth is less than around 30 sequences (see Fig. 5a for details).",
+      "where": "p. 6 (journal p. 588), MSA depth and cross-chain contacts",
+      "in": "this paper"
+    }
+  ],
+  "related": {
+    "same_topic": [
+      {
+        "link": "10.1038/s41586-021-03828-1",
+        "cite": "Tunyasuvunakool et al. 2021, Nature",
+        "title": "Highly accurate protein structure prediction for the human proteome",
+        "why": "Companion paper: applies AlphaFold to the entire human proteome (cited as ref. 39, p. 6)."
+      },
+      {
+        "link": "10.1038/s41586-019-1923-7",
+        "cite": "Senior et al. 2020, Nature",
+        "title": "Improved protein structure prediction using potentials from deep learning",
+        "why": "The CASP13 AlphaFold system, which the paper says is a completely different model from this one (ref. 10, p. 1)."
+      }
+    ],
+    "search": "The paper's own text and reference list (companion paper ref. 39; CASP13 system ref. 10), both resolved with T cite."
+  },
+  "open_points": [
+    "Number of parameters of the network is not reported in the main text (not found in the Supplementary Information by text search either).",
+    "The licence name of the open-source code is not given in the paper (only \"an open-source license\").",
+    "The 0.96 Å figure is the median over CASP14 domains (n = 87); on full chains of recent PDB structures the overall median is 1.46 Å (Fig. 2a), a different dataset and a harder measure (the paper notes it is sensitive to domain packing).",
+    "Supplementary Videos 1–4 (MP4) not downloaded: not a text format."
+  ],
+  "curation": {
+    "date": "2026-11-10",
+    "read": "Main text and Methods, pp. 1–10 of paper.pdf (journal pp. 583–589); Reporting Summary, p. 11; Supplementary Information (62 pages) searched for parameter counts, licence and Table 6, not read in full.",
+    "checks": [
+      {
+        "claim": "AlphaFold reaches a median backbone accuracy of 0.96 Å r.m.s.d.95 in CASP14.",
+        "verdict": "confirmed (p. 2, journal p. 584; Fig. 1a): 0.96 Å, 95% CI 0.85–1.16 Å, on CASP14 domains (n = 87); next best method 2.8 Å"
+      }
+    ]
+  }
+}

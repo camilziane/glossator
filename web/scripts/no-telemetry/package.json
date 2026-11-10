@@ -1,0 +1,10 @@
+{
+  "name": "@ibm/telemetry-js",
+  "version": "0.0.0-disabled",
+  "private": true,
+  "description": "Stands in for @ibm/telemetry-js (pulled in by the IBM Plex font packages): their postinstall calls `ibmtelemetry`, which here does nothing. No telemetry, on any computer or CI.",
+  "license": "MIT",
+  "bin": {
+    "ibmtelemetry": "noop.js"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "deny": [
+      "Read(~/.ssh/**)",
+      "Read(~/.gnupg/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.config/**)",
+      "Read(~/.netrc)",
+      "Read(~/.git-credentials)",
+      "Read(./.env)",
+      "Edit(~/.ssh/**)",
+      "Edit(~/.gnupg/**)",
+      "Edit(~/.aws/**)",
+      "Edit(~/.config/**)",
+      "Edit(~/.netrc)",
+      "Edit(~/.git-credentials)",
+      "Edit(./.env)"
+    ]
+  }
+}

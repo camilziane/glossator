@@ -1,0 +1,14 @@
+{
+  "paper_version": {
+    "publishedVersion": {"label": "published version", "means": "the publisher's version of record"},
+    "acceptedVersion": {"label": "accepted manuscript", "means": "the peer-reviewed manuscript before the publisher's layout"},
+    "submittedVersion": {"label": "preprint", "means": "the version before peer review"}
+  },
+  "supplementary_status": {
+    "retrieved": {"label": "Retrieved", "means": "every supplementary text file (PDF, Word, spreadsheet) is in supplementary/"},
+    "partial": {"label": "Partly retrieved", "means": "some files are here; `note` says which are missing and why"},
+    "none-published": {"label": "None published", "means": "the article has no supplementary material"},
+    "in-paper": {"label": "In the paper", "means": "the supplementary material is printed in paper.pdf itself; `note` gives its pages"},
+    "not-open": {"label": "Not open", "means": "supplementary material exists but no open copy was found"}
+  }
+}
