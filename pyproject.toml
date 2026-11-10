@@ -27,7 +27,7 @@ dependencies = [
     # embeddings for the semantic search: a build on the CPU (the default), a CUDA GPU (the `gpu` extra) or Metal
     "sentence-transformers>=3",
     "onnxruntime>=1.20", # a query's vector, on the CPU, without loading PyTorch
-    "torch>=2.7,<2.11",
+    "torch>=2.7,<2.16",
     "mcp>=2.3,<3", # the server `glossator mcp`
     "pillow>=10", # the coordinate grid `page` draws on a page render
 ]
@@ -35,7 +35,7 @@ dependencies = [
 [project.optional-dependencies]
 # PyTorch with CUDA (PyPI's Linux build: CUDA 12 up to 2.10, an NVIDIA driver 525 or later; several GB):
 #     uv run --extra gpu --no-group cpu glossator build   (a plain `uv run` returns to the CPU build)
-gpu = ["torch>=2.7,<2.11"]
+gpu = ["torch>=2.7,<2.16"]
 
 [project.urls]
 Homepage = "https://github.com/camilziane/glossator"
@@ -64,7 +64,7 @@ dev = [
     "ruff>=0.6",
 ]
 # PyTorch's CPU build on Linux (about 200 MB instead of several GB of CUDA libraries); macOS takes PyPI's (Metal).
-cpu = ["torch>=2.7,<2.11"]
+cpu = ["torch>=2.7,<2.16"]
 
 [tool.uv]
 default-groups = ["cpu"]
