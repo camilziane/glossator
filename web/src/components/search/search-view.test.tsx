@@ -386,6 +386,15 @@ describe("<SearchView>", () => {
     ).toBeVisible()
   })
 
+  it("never says the model is loading once the server says it is ready, and searches once", async () => {
+    const fetchMock = mockApi({ mode: "keyword", semantic: true })
+    await renderSearch("?q=toy")
+    await screen.findByText("3 passages in 2 articles")
+    await new Promise((r) => setTimeout(r, 50))
+    expect(screen.queryByText(/the meaning model is still loading/)).toBeNull()
+    expect(calls(fetchMock, "/api/search")).toHaveLength(1)
+  })
+
   it("while typing, keeps the previous results dimmed and never shows the help", async () => {
     const user = userEvent.setup()
     mockApi()

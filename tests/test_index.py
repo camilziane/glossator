@@ -170,6 +170,8 @@ def test_ligatures_read_as_letters_and_flags_are_not_text():
 
 def test_a_query_unrelated_to_the_library_finds_nothing_by_its_meaning(idx):
     assert idx.search("zzqxv blorptang", mode="semantic") == []
+    assert idx.last_mode == "semantic"  # searched by its meaning, found nothing: not a model still loading
+    assert idx.search("zzqxv blorptang", mode="hybrid") == [] and idx.last_mode == "hybrid"
     a = first(idx)
     question = json.loads(idx.article(a["key"])["record"])["overview"]["one_line"]
     assert idx.search(question, mode="semantic", limit=3)

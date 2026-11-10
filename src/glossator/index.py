@@ -302,14 +302,15 @@ class Index:
         query = query.translate(LIGATURES)
         where, args = filters(bib, key, scope)
         words = self._keyword(query, where, args, POOL)
-        meaning = []
-        if mode != "keyword" and self.has_vectors() and (wait or ready_for_queries()):
-            meaning = self._semantic(query, where, args, POOL)
-        self.last_mode = "keyword" if not meaning else mode
-        if mode == "keyword" or not meaning:
-            order = [rid for rid, _ in words]
-        elif mode == "semantic":
+        # `last_mode` says whether the meaning was searched, not whether it found anything: a query far from every
+        # passage finds nothing by its meaning (SEMANTIC_FLOOR), and that is an answer, not a model still loading.
+        meant = mode != "keyword" and self.has_vectors() and (wait or ready_for_queries())
+        meaning = self._semantic(query, where, args, POOL) if meant else []
+        self.last_mode = mode if meant else "keyword"
+        if mode == "semantic" and meant:
             order = meaning
+        elif mode == "keyword" or not meaning:
+            order = [rid for rid, _ in words]
         else:
             order = fuse([[rid for rid, _ in words], meaning], [1.0, SEMANTIC_WEIGHT])
         snips = dict(words)

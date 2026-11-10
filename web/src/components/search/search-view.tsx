@@ -162,13 +162,20 @@ export function SearchView() {
   const search = usePassageSearch({ q: debouncedQ, bib, scope, mode, limit }, attempt)
   const indexStatus = useIndexStatus(statusAttempt)
   const response = search.response
-  // The answer went by words alone although meaning was asked: the model is still loading.
+  // The answer went by words alone although meaning was asked, and the server says its meaning model is
+  // not ready yet: it is loading. Otherwise a words-only answer is final (an index without vectors, or an
+  // older server): never a notice, never another search.
+  const meaningLoading = indexStatus.state === "ready" && !indexStatus.status.semantic
   const degraded =
     search.status === "done" &&
     response !== null &&
     response.mode === "keyword" &&
-    mode !== "keyword"
-  useWhenMeaningReady(degraded, () => setAttempt((n) => n + 1))
+    mode !== "keyword" &&
+    meaningLoading
+  useWhenMeaningReady(degraded, () => {
+    setStatusAttempt((n) => n + 1)
+    setAttempt((n) => n + 1)
+  })
 
   const unavailable =
     (search.status === "error" && isApiUnavailable(search.error)) ||
