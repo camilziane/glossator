@@ -664,7 +664,8 @@ def build_parser(biblio=None) -> tuple[Parser, argparse._SubParsersAction]:
         "Tab-separated: bibliography, key, DOI, year, citation, title (every bibliography without --bib).",
     )
 
-    add(sub, "mcp", "What Claude Code starts through .mcp.json; not for a terminal.")
+    s = add(sub, "mcp", "What Claude Code starts through .mcp.json; not for a terminal.")
+    s.add_argument("--read-only", action="store_true", help="only the tools that read (no inbox decision or fetch)")
 
     # -------------------------------------------------------------- keep it right
     s = add(
@@ -935,7 +936,7 @@ def main(argv: list[str] | None = None) -> int:
     if cmd == "mcp":
         from .server import main as serve  # imported here: the MCP SDK is slow to load
 
-        serve()
+        serve(read_only_tools=a.read_only)
         return 0
     if cmd == "check":
         return run_check(biblio, a)

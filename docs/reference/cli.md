@@ -295,8 +295,12 @@ The search index for Claude and other MCP clients (stdio).
 What Claude Code starts through .mcp.json; not for a terminal.
 
 ```
-glossator mcp
+glossator mcp [OPTIONS]
 ```
+
+| Argument | Description |
+|---|---|
+| `--read-only` | only the tools that read (no inbox decision or fetch) |
 
 ## Keep it right
 

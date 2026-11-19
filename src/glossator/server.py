@@ -194,6 +194,17 @@ def warm_up() -> None:
         pass
 
 
-def main() -> None:
+WRITES = ("inbox_decide", "inbox_fetch")  # the tools that change the library (a commit in library/inbox/)
+
+
+def read_only() -> None:
+    """Keep only the tools that read: what a server registered for every session of the computer offers."""
+    for name in WRITES:
+        server.remove_tool(name)
+
+
+def main(read_only_tools: bool = False) -> None:
+    if read_only_tools:
+        read_only()
     threading.Thread(target=warm_up, daemon=True).start()
     server.run("stdio")

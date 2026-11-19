@@ -218,3 +218,17 @@ def test_claude_code_starts_the_server_on_the_library_glossator_home_names():
 
     config = json.loads((Path(__file__).parents[1] / ".mcp.json").read_text())["mcpServers"]["glossator"]
     assert config["args"][-1] == "mcp" and config["env"] == {"GLOSSATOR_HOME": "${GLOSSATOR_HOME:-.}"}
+
+
+def test_a_read_only_server_offers_no_tool_that_writes(monkeypatch):
+    import asyncio
+
+    from mcp.server.mcpserver import MCPServer
+
+    fresh = MCPServer("t")
+    for name in ("search", *server.WRITES):
+        fresh.add_tool(getattr(server, name), name=name)
+    monkeypatch.setattr(server, "server", fresh)
+    server.read_only()
+    names = {t.name for t in asyncio.run(fresh.list_tools())}
+    assert names == {"search"}
