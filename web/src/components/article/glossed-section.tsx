@@ -3,58 +3,54 @@
 import { ChevronRightIcon } from "lucide-react"
 import type { ReactNode } from "react"
 
+import { IdentityIcon } from "@/components/content/identity"
 import type { Block, Section } from "@/lib/data"
+import { sectionIdentity, type Identity } from "@/lib/identity"
 import { typeset } from "@/lib/typeset"
 import { cn } from "@/lib/utils"
 
-import { foldsGroups, groupsOf, isCollapsedSection, segmentBlocks } from "./article-model"
+import { useArticleContext } from "./article-context"
+import { foldsGroups, groupsOf, isCollapsedSection } from "./article-model"
 import { BlockView, Blocks, tableLabels } from "./blocks"
-import { GlossNotes } from "./gloss-notes"
 import { AT, GRID } from "./grid"
 
 /**
- * A band of the glossed grid with a rubric: the section's number and name hanging in the left margin
- * (≥ 1280 px; above the text, the number before the name, on narrower screens), the h2 of its
- * content. Its id is the URL's hash. The page's own bands (Key metrics moved up, Figures) have no
- * number: the record's sections are numbered from 1.
+ * A band of the article: its heading (the section's icon in its family's ink, then its name), the
+ * h2 of its content. Its id is the URL's hash. The section's identity is its profile's mark for its
+ * id; the page's own bands (the figures) pass theirs.
  */
 export function SectionFrame({
   id,
-  number,
   title,
+  identity,
   children,
   className,
 }: {
   id: string
-  number?: number
   title: string
+  /** The page's own band's identity (else the profile's mark for `id`). */
+  identity?: Identity | null
   children: ReactNode
   className?: string
 }) {
+  const { identities } = useArticleContext()
   const headingId = `${id}--title`
+  const mark = identity === undefined ? sectionIdentity(identities, id) : identity
   return (
     <section
       id={id}
       aria-labelledby={headingId}
       data-section=""
-      className={cn(GRID, "mt-12 scroll-mt-2 gap-y-5 print:mt-8", className)}
+      className={cn(GRID, "mt-14 scroll-mt-2 gap-y-5 print:mt-8", className)}
     >
       <h2
         id={headingId}
         tabIndex={-1}
         data-section-heading=""
-        className={cn(
-          AT.rubric,
-          "rounded-[2px] font-serif text-title font-semibold text-balance [font-variant-numeric:lining-nums] outline-none print:break-after-avoid",
-          "xl:row-start-1 xl:pt-[0.1875rem] xl:text-right xl:text-note xl:text-rubric"
-        )}
+        className="flex items-center gap-2.5 rounded-[2px] title text-foreground outline-none print:break-after-avoid"
       >
-        {number !== undefined ? (
-          <>
-            <span className="mr-1 text-rubric num xl:mr-0.5">{number}</span>{" "}
-          </>
-        ) : null}
-        {typeset(title)}
+        <IdentityIcon identity={mark} className="size-5" />
+        <span className="min-w-0">{typeset(title)}</span>
       </h2>
       {children}
     </section>
@@ -62,64 +58,43 @@ export function SectionFrame({
 }
 
 /**
- * A section of the article in the glossed grid: its text in the measure, the notes (quotes, sources)
- * in the margin beside the text they follow, wide tables across both. A section made only of quotes
- * ("In the paper's words") has them as its text; long detail (many sites) folds into
- * disclosures; "Sources and provenance" opens on request.
+ * A section of the article, in one column: its text in the measure, each label over its value, the
+ * notes (quotes, sources) after the text they gloss, wide tables at the column's width. A section
+ * made only of quotes ("In the paper's words") has them as its text; long detail (many sites)
+ * folds into disclosures; "Sources and provenance" opens on request.
  */
-export function GlossedSection({
-  section,
-  number,
-  pdf,
-  aside,
-}: {
-  section: Section
-  number?: number
-  pdf: string | null
-  /** What the margin holds beside a section without notes (the facts that go on). */
-  aside?: ReactNode
-}) {
-  const label = section.title
+export function GlossedSection({ section, pdf }: { section: Section; pdf: string | null }) {
   return (
-    <SectionFrame id={section.id} number={number} title={section.title}>
-      <SectionBody section={section} pdf={pdf} label={label} aside={aside} />
+    <SectionFrame id={section.id} title={section.title}>
+      <SectionBody section={section} pdf={pdf} />
     </SectionFrame>
   )
 }
 
-function SectionBody({
-  section,
-  pdf,
-  label,
-  aside,
-}: {
-  section: Section
-  pdf: string | null
-  label: string
-  aside?: ReactNode
-}) {
+function SectionBody({ section, pdf }: { section: Section; pdf: string | null }) {
   const { blocks } = section
+  const label = section.title
   if (isCollapsedSection(section)) {
     return (
-      <div className={cn(AT.text, "xl:row-start-1")}>
+      <div className={AT.text}>
         <Fold summary={foldSummary(blocks)}>
-          <Blocks blocks={blocks} pdf={pdf} label={label} />
+          <Blocks blocks={blocks} pdf={pdf} label={label} section={section.id} />
         </Fold>
       </div>
     )
   }
   if (blocks.length > 0 && blocks.every((b) => b.t === "quote" || b.t === "h3")) {
     return (
-      <div className={cn(AT.text, "space-y-6 xl:row-start-1")}>
+      <div className={cn(AT.text, "space-y-6")}>
         {blocks.map((block, i) => (
-          <BlockView key={i} block={block} pdf={pdf} notes="text" />
+          <BlockView key={i} block={block} pdf={pdf} notes="text" section={section.id} />
         ))}
       </div>
     )
   }
   if (foldsGroups(section)) {
     return (
-      <div className={cn(AT.text, "xl:row-start-1")}>
+      <div className={AT.text}>
         <ul className="border-t border-border">
           {groupsOf(blocks).map((group, i) => (
             <li key={i} className="border-b border-border">
@@ -128,6 +103,7 @@ function SectionBody({
                   blocks={group.blocks}
                   pdf={pdf}
                   label={group.heading ?? label}
+                  section={section.id}
                   className="pt-1 pb-5"
                 />
               </Fold>
@@ -137,59 +113,15 @@ function SectionBody({
       </div>
     )
   }
+  // In their order: a note (a quote, a source) follows the text it glosses, a wide table takes the
+  // column's width.
   const labels = tableLabels(blocks, label)
-  const labelOf = new Map<Block, string | undefined>(blocks.map((b, i) => [b, labels[i]]))
-  // Fields hang their labels in the left margin (≥ 1280 px), where the rubric is: a section that
-  // opens with fields starts a line below its rubric.
-  const firstRow = blocks[0]?.t === "fields" ? "xl:row-start-2" : "xl:row-start-1"
-  const segments = segmentBlocks(blocks)
   return (
-    <>
-      {firstRow === "xl:row-start-2" ? (
-        // The rubric's own line: nothing else is placed beside it.
-        <div
-          aria-hidden="true"
-          className="hidden xl:col-span-2 xl:col-start-2 xl:row-start-1 xl:block"
-        />
-      ) : null}
-      {segments.map((segment, i) => {
-        const first = i === 0 ? firstRow : ""
-        if (segment.wide) {
-          const block = segment.blocks[0]!
-          return (
-            <div key={i} className="contents">
-              <div className={cn(AT.wide, first)}>
-                <BlockView block={block} pdf={pdf} label={labelOf.get(block)} />
-              </div>
-              {segment.notes.length > 0 ? (
-                <GlossNotes notes={segment.notes} pdf={pdf} className={AT.gloss} />
-              ) : null}
-            </div>
-          )
-        }
-        return (
-          <div key={i} className="contents">
-            {segment.blocks.length > 0 ? (
-              <div className={cn(AT.text, "space-y-5", first)}>
-                {segment.blocks.map((block, j) => (
-                  <BlockView key={j} block={block} pdf={pdf} label={labelOf.get(block)} />
-                ))}
-              </div>
-            ) : null}
-            {segment.notes.length > 0 ? (
-              <GlossNotes
-                notes={segment.notes}
-                pdf={pdf}
-                className={cn(AT.gloss, first, "lg:pt-1")}
-              />
-            ) : i === 0 && aside ? (
-              // Narrow screens list every fact after the lede already.
-              <div className={cn(AT.gloss, "max-lg:hidden lg:pt-1.5 print:block")}>{aside}</div>
-            ) : null}
-          </div>
-        )
-      })}
-    </>
+    <div className={cn(AT.text, "space-y-5")}>
+      {blocks.map((block, i) => (
+        <BlockView key={i} block={block} pdf={pdf} label={labels[i]} section={section.id} />
+      ))}
+    </div>
   )
 }
 

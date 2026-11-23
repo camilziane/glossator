@@ -41,7 +41,7 @@ export function CliCommand({
               ? `Could not copy: ${command}`
               : `Copy: ${command}`
         }
-        className="text-muted-foreground hover:bg-[color-mix(in_oklab,var(--muted),var(--foreground)_6%)] hover:text-foreground data-[copy-state=copied]:text-success"
+        className="text-muted-foreground hover:bg-wash-2 hover:text-foreground data-[copy-state=copied]:text-success"
       />
     </span>
   )

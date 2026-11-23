@@ -124,7 +124,7 @@ export function FigureBlockView({ block, pdf }: { block: FigureBlock; pdf: strin
       decoding="async"
       width={size?.w}
       height={size?.h}
-      className="block h-auto max-w-full bg-white"
+      className="block h-auto max-w-full bg-figure-paper"
       onLoad={(e) => {
         const seen = rememberSize(src, e.currentTarget)
         if (seen && (seen.w !== size?.w || seen.h !== size?.h)) setSize(seen)

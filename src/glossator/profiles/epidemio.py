@@ -23,6 +23,15 @@ PROFILE = reference_profile(
     glance=("condition", "population", "design"),
     section="Study",
     lead="population",
+    identities={
+        "labels": {
+            "Condition": ("stethoscope", "framing"),
+            "Population": ("users", "data"),
+            "Design": ("drafting-compass", "method"),
+            "Data sources": ("database", "data"),
+            "Measures": ("ruler", "method"),
+        }
+    },
     kinds={
         "registry": {"label": "Registry study", "means": "counts cases from a population registry"},
         "cohort": {

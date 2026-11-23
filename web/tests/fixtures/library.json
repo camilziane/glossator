@@ -10,6 +10,112 @@
    "profile": "field",
    "scope": "Invented field sensors that track water and carbon in grassland soils: sensors, siting, tasks, models and their metrics.",
    "complete": 3,
+   "identities": {
+    "sections": {
+     "overview": [
+      "scan-text",
+      "framing"
+     ],
+     "open-points": [
+      "circle-question-mark",
+      "framing"
+     ],
+     "related": [
+      "link",
+      "reference"
+     ],
+     "provenance": [
+      "notebook-pen",
+      "documents"
+     ],
+     "task": [
+      "clipboard-list",
+      "method"
+     ],
+     "plots": [
+      "layers",
+      "data"
+     ],
+     "sensors": [
+      "activity",
+      "data"
+     ],
+     "siting": [
+      "map-pin",
+      "data"
+     ],
+     "model": [
+      "network",
+      "method"
+     ],
+     "metrics": [
+      "chart-column",
+      "results"
+     ]
+    },
+    "labels": {
+     "Figure": [
+      "image",
+      "documents"
+     ],
+     "Task": [
+      "clipboard-list",
+      "method"
+     ],
+     "Plots": [
+      "layers",
+      "data"
+     ],
+     "Sensors": [
+      "activity",
+      "data"
+     ],
+     "Siting": [
+      "map-pin",
+      "data"
+     ],
+     "Model": [
+      "network",
+      "method"
+     ],
+     "Key metrics": [
+      "chart-column",
+      "results"
+     ],
+     "Goal": [
+      "target",
+      "framing"
+     ],
+     "Condition": [
+      "stethoscope",
+      "framing"
+     ],
+     "Architecture": [
+      "workflow",
+      "method"
+     ],
+     "Input": [
+      "arrow-right-to-line",
+      "method"
+     ],
+     "Output": [
+      "arrow-right-from-line",
+      "method"
+     ],
+     "Training": [
+      "dumbbell",
+      "method"
+     ],
+     "Code": [
+      "code-xml",
+      "method"
+     ],
+     "Data": [
+      "database",
+      "data"
+     ]
+    }
+   },
    "tables": [
     {
      "id": "articles",
@@ -113,7 +219,7 @@
         "Campaign"
        ],
        [
-        "Transformer encoder with a mass-balance loss"
+        "Attention encoder with a mass-balance loss"
        ],
        [
         {
@@ -1440,7 +1546,7 @@
         "label": "Model",
         "lines": [
          [
-          "Transformer encoder with a mass-balance loss"
+          "Attention encoder with a mass-balance loss"
          ]
         ]
        },
@@ -1603,7 +1709,7 @@
            {
             "label": "Summary",
             "c": [
-             "Transformer encoder with a mass-balance loss"
+             "Attention encoder with a mass-balance loss"
             ]
            },
            {
@@ -1924,6 +2030,84 @@
    "profile": "ml",
    "scope": "Invented methods: models, how they are trained, the benchmarks and what they found.",
    "complete": 3,
+   "identities": {
+    "sections": {
+     "overview": [
+      "scan-text",
+      "framing"
+     ],
+     "open-points": [
+      "circle-question-mark",
+      "framing"
+     ],
+     "related": [
+      "link",
+      "reference"
+     ],
+     "provenance": [
+      "notebook-pen",
+      "documents"
+     ],
+     "details": [
+      "flask-conical",
+      "method"
+     ],
+     "results": [
+      "chart-column",
+      "results"
+     ],
+     "quotes": [
+      "text-quote",
+      "documents"
+     ]
+    },
+    "labels": {
+     "Figure": [
+      "image",
+      "documents"
+     ],
+     "Key results": [
+      "chart-column",
+      "results"
+     ],
+     "Kind": [
+      "tag",
+      "reference"
+     ],
+     "Problem": [
+      "puzzle",
+      "framing"
+     ],
+     "Idea": [
+      "lightbulb",
+      "framing"
+     ],
+     "Architecture or algorithm": [
+      "workflow",
+      "method"
+     ],
+     "Input": [
+      "arrow-right-to-line",
+      "method"
+     ],
+     "Training": [
+      "dumbbell",
+      "method"
+     ],
+     "Datasets": [
+      "database",
+      "data"
+     ],
+     "Cost": [
+      "cpu",
+      "results"
+     ],
+     "Code": [
+      "code-xml",
+      "method"
+     ]
+    }
+   },
    "tables": [
     {
      "id": "articles",
@@ -3375,6 +3559,32 @@
    "profile": "materials",
    "scope": "An empty bibliography: no article yet.",
    "complete": 0,
+   "identities": {
+    "sections": {
+     "overview": [
+      "scan-text",
+      "framing"
+     ],
+     "open-points": [
+      "circle-question-mark",
+      "framing"
+     ],
+     "related": [
+      "link",
+      "reference"
+     ],
+     "provenance": [
+      "notebook-pen",
+      "documents"
+     ]
+    },
+    "labels": {
+     "Figure": [
+      "image",
+      "documents"
+     ]
+    }
+   },
    "tables": [
     {
      "id": "articles",

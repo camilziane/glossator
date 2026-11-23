@@ -16,7 +16,7 @@ import { InlineWithPages } from "./inline-pages"
 
 /** A control on the dark scrim: paper-coloured, its focus outline too. */
 const ON_SCRIM =
-  "text-inherit hover:bg-white/10 focus-visible:outline-[oklch(0.95_0.01_85)] active:bg-white/15"
+  "text-inherit hover:bg-on-scrim/10 focus-visible:outline-on-scrim active:bg-on-scrim/15"
 
 /** A figure zooms (a click, at the pointer) only when it is this much larger than shown. */
 const ZOOM_FROM = 1.5
@@ -72,7 +72,7 @@ export function FigureLightbox({
   return (
     <Dialog open={figure !== undefined} onOpenChange={(open) => !open && onIndexChange(null)}>
       <DialogPortal>
-        <DialogOverlay className="bg-[oklch(0.15_0.01_60/0.85)] dark:bg-[oklch(0.15_0.01_60/0.85)]" />
+        <DialogOverlay className="bg-scrim-figure" />
         <DialogPrimitive.Content
           onOpenAutoFocus={restore.onOpenAutoFocus}
           onCloseAutoFocus={restore.onCloseAutoFocus}
@@ -132,7 +132,7 @@ function Shown({
   }
   return (
     <>
-      <div className="flex w-full max-w-[min(100%,84rem)] items-center justify-end gap-1 text-[oklch(0.95_0.01_85)]">
+      <div className="flex w-full max-w-[min(100%,84rem)] items-center justify-end gap-1 text-on-scrim">
         {count > 1 ? (
           <>
             <span className="mr-2 font-sans text-ui num" aria-live="polite">
@@ -173,7 +173,7 @@ function Shown({
       >
         <div
           className={cn(
-            "flex min-h-0 justify-center overflow-hidden bg-white",
+            "flex min-h-0 justify-center overflow-hidden bg-figure-paper",
             zoom && (zoomed ? "cursor-zoom-out" : "cursor-zoom-in")
           )}
           onPointerMove={zoomed ? at : undefined}

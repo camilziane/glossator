@@ -117,7 +117,9 @@ test.describe("full-text search", () => {
       "href",
       "/library/ml/articles/novak2024/paper.pdf#page=4"
     )
-    await expect(novak.getByText("table s1.pdf")).toBeVisible()
+    // each line says its kind (its icon, its word); a file's name is left to the reader
+    await expect(novak.locator("li[data-kind='supplementary']")).toContainText("Supplementary")
+    await expect(novak.getByText("table s1.pdf")).toHaveCount(0)
     const ashworth = page.getByRole("region", { name: ASHWORTH_TITLE })
     await expect(ashworth.getByText("Method", { exact: true })).toBeVisible()
     await expect(ashworth.getByText("Architecture or algorithm")).toBeVisible()

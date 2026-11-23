@@ -30,6 +30,18 @@ PROFILE = reference_profile(
     glance=("problem", "idea", "cost"),
     section="Method",
     lead="idea",
+    identities={
+        "labels": {
+            "Problem": ("puzzle", "framing"),
+            "Idea": ("lightbulb", "framing"),
+            "Architecture or algorithm": ("workflow", "method"),
+            "Input": ("arrow-right-to-line", "method"),
+            "Training": ("dumbbell", "method"),
+            "Datasets": ("database", "data"),
+            "Cost": ("cpu", "results"),
+            "Code": ("code-xml", "method"),
+        }
+    },
     kinds={
         "architecture": {"label": "Architecture", "means": "a network, layer or operation design"},
         "training": {"label": "Training", "means": "an objective, a data augmentation or a training procedure"},

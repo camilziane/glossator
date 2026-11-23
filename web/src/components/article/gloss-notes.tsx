@@ -1,6 +1,10 @@
 "use client"
 
-import { plainText, type Block, type Inlines, type QuoteBlock, type SourceBlock } from "@/lib/data"
+import { ChevronDownIcon } from "lucide-react"
+
+import { IdentityIcon } from "@/components/content/identity"
+import { plainText, type Inlines, type QuoteBlock, type SourceBlock } from "@/lib/data"
+import { APP } from "@/lib/identity"
 import { cn } from "@/lib/utils"
 
 import { useArticleContext } from "./article-context"
@@ -8,47 +12,11 @@ import { CopyCitation, quoteCitation } from "./copy-citation"
 import { InlineWithPages } from "./inline-pages"
 import { firstPageRef } from "./page-refs"
 
-/** How a note is drawn: in the margin, inline after its text (narrow screens), or as the text. */
-export type NoteLayout = "margin" | "inline" | "text"
-
 /**
- * The notes of a stretch of text: in the margin beside it from 1024 px, after it on narrow screens
- * (each a note: a hairline on its left). An `<aside>` in its section: read after the text it glosses.
+ * How a note is drawn: after the text it glosses (`inline`: a quote folds under its page, a source
+ * is a small line), or as the text itself (`text`: a section made of quotes).
  */
-export function GlossNotes({
-  notes,
-  pdf,
-  layout = "margin",
-  className,
-}: {
-  notes: readonly Block[]
-  pdf: string | null
-  layout?: NoteLayout
-  className?: string
-}) {
-  if (notes.length === 0) return null
-  return (
-    <aside className={cn("min-w-0 space-y-4", layout === "margin" && "lg:space-y-5", className)}>
-      {notes.map((note, i) =>
-        note.t === "quote" ? (
-          <QuoteNote key={i} block={note} pdf={pdf} layout={layout} />
-        ) : note.t === "source" ? (
-          <SourceNote key={i} block={note} pdf={pdf} layout={layout} />
-        ) : null
-      )}
-    </aside>
-  )
-}
-
-/** A note's frame: in the margin plain; inline (narrow screens, folded detail) a hairline on its left. */
-export function noteFrame(layout: NoteLayout): string {
-  // In the margin, an invisible 2 px rule outside the text: a lit note shows it in rubric.
-  return layout === "margin"
-    ? "border-l border-border pl-3 lg:-ml-3 lg:border-l-2 lg:border-transparent lg:pl-2.5 print:ml-0 print:border-0 print:pl-0"
-    : layout === "inline"
-      ? "border-l border-border pl-3"
-      : ""
-}
+export type NoteLayout = "inline" | "text"
 
 /** "p. 4, Methods 2.1" → "p. 4 · Methods 2.1": the page mark first, then where in the paper. */
 export function markFirst(cite: Inlines): Inlines {
@@ -61,13 +29,14 @@ export function markFirst(cite: Inlines): Inlines {
 }
 
 /**
- * A quote of the paper: the serif at 14/20, roman, muted ink, its opening mark hanging; then its page
- * mark and where it is ("p. 5 · Results"), and a control that copies it with its citation.
+ * A quote of the paper: its words in the serif, its opening mark hanging; then its page mark and
+ * where it is ("p. 5 · Results"), and a control that copies it with its citation. After the text it
+ * glosses it folds: "Quote · p. 5" opens it (open in print). As the text, it reads in full.
  */
 export function QuoteNote({
   block,
   pdf,
-  layout = "margin",
+  layout = "inline",
 }: {
   block: QuoteBlock
   pdf: string | null
@@ -77,18 +46,20 @@ export function QuoteNote({
   const words = plainText(block.c)
   const ref = firstPageRef(plainText(block.cite))
   const text = layout === "text"
-  return (
+  const quote = (
     <figure
       data-gloss-note=""
       data-copyable=""
       className={cn(
         "group/copy gloss-note relative",
-        noteFrame(layout),
-        text ? "max-w-measure" : "text-muted-foreground"
+        text ? "max-w-measure" : "mt-1.5 max-w-measure border-l border-border pl-3"
       )}
     >
       <blockquote
-        className={cn("pl-[0.42em] -indent-[0.42em]", text ? "reading" : "gloss text-inherit")}
+        className={cn(
+          "pl-[0.42em] -indent-[0.42em]",
+          text ? "reading" : "gloss text-muted-foreground"
+        )}
       >
         <p>
           “<InlineWithPages parts={block.c} pdf={pdf} />”
@@ -115,9 +86,26 @@ export function QuoteNote({
       </figcaption>
     </figure>
   )
+  if (text) return quote
+  return (
+    <details data-print-open="" className="group/quote">
+      <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-[4px] font-sans text-small text-muted-foreground select-none hover:text-foreground [&::-webkit-details-marker]:hidden">
+        <IdentityIcon identity={APP.quote} className="size-3.5" />
+        <span>
+          Quote
+          {ref ? <span className="num"> · {ref.text}</span> : null}
+        </span>
+        <ChevronDownIcon
+          aria-hidden="true"
+          className="size-3.5 transition-transform duration-150 group-open/quote:rotate-180"
+        />
+      </summary>
+      {quote}
+    </details>
+  )
 }
 
-/** "Source: p. 4, Fig. 2" → "p. 4, Fig. 2": in the margin, a note of pages says it is a source. */
+/** "Source: p. 4, Fig. 2" → "p. 4, Fig. 2": the icon says it is a source. */
 export function withoutSourceWord(parts: Inlines): Inlines {
   const [first, ...rest] = parts
   if (typeof first !== "string" || !/^\s*Sources?:\s*/iu.test(first)) return parts
@@ -125,11 +113,14 @@ export function withoutSourceWord(parts: Inlines): Inlines {
   return stripped ? [stripped, ...rest] : rest
 }
 
-/** Where a section's content comes from ("Source: pp. 4–10, Results"): a note of pages. */
+/**
+ * Where a section's content comes from ("Source: pp. 4–10, Results"): a small muted line after
+ * the text, the paper's icon before it.
+ */
 export function SourceNote({
   block,
   pdf,
-  layout = "margin",
+  layout = "inline",
 }: {
   block: SourceBlock
   pdf: string | null
@@ -140,12 +131,15 @@ export function SourceNote({
     <p
       data-gloss-note=""
       className={cn(
-        "gloss-note font-sans text-small text-pretty text-muted-foreground",
-        noteFrame(layout)
+        "gloss-note flex items-baseline gap-1.5 font-sans text-small text-pretty text-muted-foreground",
+        layout === "text" && "max-w-measure"
       )}
     >
-      {parts !== block.c ? <span className="sr-only">Source: </span> : null}
-      <InlineWithPages parts={parts} pdf={pdf} acronyms={false} />
+      <IdentityIcon identity={APP.paper} className="size-3.5 translate-y-0.5 self-start" />
+      <span className="min-w-0">
+        <span className="sr-only">Source: </span>
+        <InlineWithPages parts={parts} pdf={pdf} acronyms={false} />
+      </span>
     </p>
   )
 }

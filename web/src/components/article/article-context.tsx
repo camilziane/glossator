@@ -2,10 +2,14 @@
 
 import { createContext, useContext } from "react"
 
-import type { ArticleEntry } from "@/lib/data"
 import type { CiteCard } from "@/lib/cite"
+import type { ArticleEntry, Identities } from "@/lib/data"
+import { NO_IDENTITIES } from "@/lib/identity"
 
-/** What the blocks of an article need from the page: its PDF, its card, its library, its lightbox. */
+/**
+ * What the blocks of an article need from the page: its PDF, its card, its library, its lightbox, its
+ * bibliography's identities.
+ */
 export interface ArticleContextValue {
   /** The article's PDF (pages cited open it there), or null. */
   pdf: string | null
@@ -17,6 +21,8 @@ export interface ArticleContextValue {
   lookup: ((bib: string, key: string) => ArticleEntry | undefined) | null
   /** Open a figure (its image's URL) in the lightbox. */
   openFigure: ((src: string) => void) | null
+  /** How its bibliography's profile marks sections and labels (`@/lib/identity`). */
+  identities: Identities
 }
 
 const DEFAULT: ArticleContextValue = {
@@ -25,6 +31,7 @@ const DEFAULT: ArticleContextValue = {
   manuscript: false,
   lookup: null,
   openFigure: null,
+  identities: NO_IDENTITIES,
 }
 
 const ArticleContext = createContext<ArticleContextValue>(DEFAULT)

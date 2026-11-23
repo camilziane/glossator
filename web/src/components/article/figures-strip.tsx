@@ -35,7 +35,7 @@ export function FiguresStrip({
               aria-label={`${name}${page ? `, ${page.doc ? "SI " : ""}${page.text}` : ""}: ${alt}. Enlarge`}
               className="group/thumb block text-left"
             >
-              <span className="flex h-28 items-center justify-center overflow-hidden bg-white outline outline-1 -outline-offset-1 outline-border transition-[outline-color] duration-150 group-hover/thumb:outline-input">
+              <span className="flex h-28 items-center justify-center overflow-hidden bg-figure-paper outline outline-1 -outline-offset-1 outline-border transition-[outline-color] duration-150 group-hover/thumb:outline-input">
                 {src ? (
                   // eslint-disable-next-line @next/next/no-img-element -- a static export: images are served as they are
                   <img
@@ -54,7 +54,7 @@ export function FiguresStrip({
               <span className="mt-1.5 flex max-w-[15rem] items-baseline gap-1.5 font-sans text-small">
                 <span className="font-medium text-foreground">{name}</span>
                 {page ? (
-                  <span className="text-rubric [font-variant-numeric:oldstyle-nums]">
+                  <span className="text-muted-foreground [font-variant-numeric:oldstyle-nums]">
                     {page.doc ? "SI " : ""}
                     {typeset(page.text)}
                   </span>

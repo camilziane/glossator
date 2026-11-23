@@ -29,6 +29,16 @@ from ..render import (
 )
 from . import Profile
 
+# How the page marks the form's own sections and tiles (Profile.identities); a profile adds its details' labels.
+FORM_IDENTITIES: dict[str, dict[str, tuple[str, str]]] = {
+    "sections": {
+        "details": ("flask-conical", "method"),
+        "results": ("chart-column", "results"),
+        "quotes": ("text-quote", "documents"),
+    },
+    "labels": {"Key results": ("chart-column", "results"), "Kind": ("tag", "reference")},
+}
+
 FIGURE_HINT = (
     f"the figure that shows the method, the resource or the main result (e.g. 'Fig. 1, p. 3'), or '{NO_FIGURE}'"
 )
@@ -51,6 +61,7 @@ def reference_profile(
     result_condition: str = "what the number holds for: dataset, model size, population, year",
     figure: Mapping[str, str] | None = None,
     order: int = 0,
+    identities: Mapping[str, Mapping[str, tuple[str, str]]] | None = None,
 ) -> Profile:
     """A profile of the reference form.
 
@@ -60,7 +71,9 @@ def reference_profile(
     lead: the field the table of the bibliography's articles shows;
     kinds: the vocabulary of `kind` ({value: {"label", "means"}}), named `<name>_kind`;
     results_required: a record has at least one result (a study measures something);
-    figure: the label and meaning of its one figure role, `main`."""
+    figure: the label and meaning of its one figure role, `main`;
+    identities: how the page marks its sections and labels (`Profile.identities`), over the form's own: its details'
+    section a method, Key results the results, the quotes a document."""
     labels = {f: label for f, label, _ in details}
     for f in (*glance, lead):
         if f not in labels:
@@ -178,4 +191,7 @@ def reference_profile(
         hub_tables=hub_tables,
         check=check,
         order=order,
+        identities={
+            kind: {**FORM_IDENTITIES[kind], **(identities or {}).get(kind, {})} for kind in ("sections", "labels")
+        },
     )

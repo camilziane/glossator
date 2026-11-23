@@ -59,7 +59,7 @@ function Entry({ entry }: { entry: ContentsEntry }) {
         <Link
           href={routes.bib(bib.name)}
           data-today-row={`bib:${bib.name}`}
-          className="rounded-[2px] decoration-[color-mix(in_oklab,var(--rubric)_55%,transparent)] decoration-1 underline-offset-[0.18em] hover:underline"
+          className="rounded-[2px] decoration-link-line decoration-1 underline-offset-[0.18em] hover:underline"
         >
           {bib.title || bib.short || bib.name}
         </Link>

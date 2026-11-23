@@ -4,12 +4,10 @@ import { plainText, readArticleView, type Block, type Section } from "@/lib/data
 
 import { fixtureLibrary } from "../../../tests/utils/fixture"
 import {
-  articleFacts,
   clauseOf,
   colophonOf,
   columnWidths,
   isFactList,
-  isQuietSection,
   lowerFirst,
   startsWithFigure,
   factsOf,
@@ -20,7 +18,6 @@ import {
   isMetricsTable,
   keyMetricsSection,
   sectionForLabel,
-  segmentBlocks,
   STAR,
 } from "./article-model"
 
@@ -33,54 +30,7 @@ function viewOf(bib: string, key: string) {
 }
 
 const p = (text: string): Block => ({ t: "p", c: [text] })
-const quote = (text: string): Block => ({ t: "quote", c: [text], cite: ["p. 2"] })
-const source = (text: string): Block => ({ t: "source", c: [text] })
-const wide: Block = { t: "table", head: ["A", "B", "C", "D"], rows: [] }
-const narrow: Block = { t: "table", head: ["A", "B"], rows: [] }
 const h3 = (text: string): Block => ({ t: "h3", text })
-const kinds = (blocks: readonly Block[]) => blocks.map((b) => b.t).join(" ")
-
-describe("segmentBlocks", () => {
-  it("keeps notes beside the text they follow", () => {
-    const segments = segmentBlocks([p("a"), p("b"), quote("q"), source("s"), p("c")])
-    expect(segments.map((s) => [s.wide, kinds(s.blocks), kinds(s.notes)])).toEqual([
-      [false, "p p", "quote source"],
-      [false, "p", ""],
-    ])
-  })
-
-  it("starts a segment at each sub-heading (a plot, a device)", () => {
-    const segments = segmentBlocks([h3("one"), p("a"), source("s"), h3("two"), p("b"), source("t")])
-    expect(segments.map((s) => kinds(s.blocks))).toEqual(["h3 p", "h3 p"])
-    expect(segments.map((s) => kinds(s.notes))).toEqual(["source", "source"])
-  })
-
-  it("puts a wide table across both columns, its notes beside the text before it", () => {
-    const segments = segmentBlocks([p("a"), wide, quote("q"), p("b"), source("s")])
-    expect(segments.map((s) => [s.wide, kinds(s.blocks), kinds(s.notes)])).toEqual([
-      [false, "p", "quote"],
-      [true, "table", ""],
-      [false, "p", "source"],
-    ])
-    // a narrow table stays in the text
-    expect(segmentBlocks([narrow, source("s")]).map((s) => s.wide)).toEqual([false])
-  })
-
-  it("leaves a wide table's notes under it when no text comes before", () => {
-    const segments = segmentBlocks([wide, source("s")])
-    expect(segments).toHaveLength(1)
-    expect(kinds(segments[0]!.notes)).toBe("source")
-  })
-
-  it("keeps notes that come first as a segment of their own", () => {
-    expect(
-      segmentBlocks([quote("q"), p("a")]).map((s) => [kinds(s.blocks), kinds(s.notes)])
-    ).toEqual([
-      ["", "quote"],
-      ["p", ""],
-    ])
-  })
-})
 
 describe("the key metrics", () => {
   it("finds the key metrics' section, and the key results' of another profile", () => {
@@ -134,18 +84,6 @@ describe("factsOf", () => {
       ["People", ["P1 · one", "P2 · two"]],
       ["Place", ["somewhere"]],
     ])
-  })
-})
-
-describe("articleFacts", () => {
-  it("adds the lab when the record names one and there is room", () => {
-    const glance = [{ label: "Task", lines: [["something"]] }]
-    expect(articleFacts(glance, ["A lab"], false).map((f) => f.label)).toEqual(["Task", "Lab"])
-    expect(
-      articleFacts(glance, [{ t: "muted", text: "not reported" }], false).map((f) => f.label)
-    ).toEqual(["Task"])
-    const six = Array.from({ length: 6 }, (_, i) => ({ label: `T${i}`, lines: [["x"]] }))
-    expect(articleFacts(six, ["A lab"], false)).toHaveLength(6)
   })
 })
 
@@ -253,17 +191,6 @@ describe("isFactList", () => {
     ).toBe(true)
     expect(isFactList({ label: "Task", lines: [["A sentence."], ["tag · tag"]] })).toBe(false)
     expect(isFactList({ label: "One", lines: [[{ t: "b", text: "P1" }]] })).toBe(false)
-  })
-})
-
-describe("isQuietSection", () => {
-  it("is a section of text without notes, tables or folds", () => {
-    const quiet: Section = { id: "overview", title: "Overview", blocks: [p("a"), p("b")] }
-    expect(isQuietSection(quiet)).toBe(true)
-    expect(isQuietSection({ ...quiet, blocks: [p("a"), source("s")] })).toBe(false)
-    expect(isQuietSection({ ...quiet, blocks: [wide] })).toBe(false)
-    expect(isQuietSection({ ...quiet, id: "provenance" })).toBe(false)
-    expect(isQuietSection({ ...quiet, blocks: [quote("q")] })).toBe(false)
   })
 })
 

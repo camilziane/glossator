@@ -84,11 +84,44 @@ export async function sentDecisions(api: { calls: ApiCall[] }, count: number) {
   return decided().map((c) => c.body)
 }
 
-/** WCAG 2.2 AA checks of what the page shows now. */
-export async function expectAccessible(page: Page) {
-  const results = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
-    .analyze()
+/**
+ * Once the page's motion has ended (a dialog opening, a bar fading in): colours are measured at
+ * rest, not halfway through a fade. Only timed animations are waited for (not an endless pulse, not
+ * the ones the scroll drives: the reading progress), and never more than 2 s.
+ */
+async function atRest(page: Page) {
+  await page.evaluate(() =>
+    Promise.race([
+      Promise.all(
+        document
+          .getAnimations()
+          .filter(
+            (a) =>
+              a.timeline === document.timeline &&
+              a.effect?.getComputedTiming().iterations !== Infinity
+          )
+          .map((a) => a.finished.catch(() => undefined))
+      ),
+      new Promise((resolve) => setTimeout(resolve, 2000)),
+    ])
+  )
+}
+
+/**
+ * WCAG 2.2 AA checks of what the page shows now, at rest. `scrolled`: the page is scrolled under
+ * its fixed bars, which cover the targets passing beneath them: axe would count those as too small
+ * (target-size), so that rule is left to the checks made at the top of a page.
+ */
+export async function expectAccessible(page: Page, { scrolled = false } = {}) {
+  await atRest(page)
+  const builder = new AxeBuilder({ page }).withTags([
+    "wcag2a",
+    "wcag2aa",
+    "wcag21a",
+    "wcag21aa",
+    "wcag22aa",
+  ])
+  const results = await (scrolled ? builder.disableRules(["target-size"]) : builder).analyze()
   expect(
     results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)
   ).toEqual([])

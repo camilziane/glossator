@@ -28,65 +28,7 @@ export function keyMetricsSection(sections: readonly Section[]): Section | undef
   return withTable.find((s) => s.id === "metrics") ?? withTable[0]
 }
 
-// ---------------------------------------------------------------------------- notes and segments
-
-/** Blocks that go to the margin: the paper's words and where a section's content comes from. */
-export function isNote(block: Block): boolean {
-  return block.t === "quote" || block.t === "source"
-}
-
-/** A table of four columns or more takes the text and the margin. */
-export function isWide(block: Block): boolean {
-  return block.t === "table" && block.head.length >= 4
-}
-
-/**
- * A stretch of a section: text blocks with the notes beside them, or a wide block (a table) across
- * the text and the margin, with the notes that follow it when nothing before can hold them.
- */
-export interface Segment {
-  wide: boolean
-  /** The text column's blocks (one block for a wide segment; none for notes alone). */
-  blocks: Block[]
-  /** The margin's notes, in order. */
-  notes: Block[]
-}
-
-/**
- * A section's blocks cut into segments. Notes stay beside the text they follow; a sub-heading starts
- * a segment (each site, each device keeps its own notes); notes after a wide table go beside
- * the text before it (the table pushes the text down, not the notes), or under it when nothing is.
- */
-export function segmentBlocks(blocks: readonly Block[]): Segment[] {
-  const out: Segment[] = []
-  let current: Segment | null = null
-  let lastText: Segment | null = null
-  for (const block of blocks) {
-    if (isNote(block)) {
-      if (current && !current.wide) current.notes.push(block)
-      else if (current?.wide && lastText) lastText.notes.push(block)
-      else if (current?.wide) current.notes.push(block)
-      else {
-        current = { wide: false, blocks: [], notes: [block] }
-        out.push(current)
-      }
-      continue
-    }
-    if (isWide(block)) {
-      current = { wide: true, blocks: [block], notes: [] }
-      out.push(current)
-      continue
-    }
-    // Text: goes on with the current text segment while no note or sub-heading came between.
-    if (!current || current.wide || current.notes.length > 0 || block.t === "h3") {
-      current = { wide: false, blocks: [], notes: [] }
-      out.push(current)
-      lastText = current
-    }
-    current.blocks.push(block)
-  }
-  return out
-}
+// ---------------------------------------------------------------------------- groups
 
 /** A sub-heading and what follows it, up to the next one (the first group may have no heading). */
 export interface Group {
@@ -119,21 +61,6 @@ export function foldsGroups(section: Section): boolean {
   )
 }
 
-/**
- * A section whose margin is empty (text without notes, not folded): the facts that do not fit beside
- * the title go on there.
- */
-export function isQuietSection(section: Section): boolean {
-  const { blocks } = section
-  return (
-    blocks.length > 0 &&
-    !isCollapsedSection(section) &&
-    !foldsGroups(section) &&
-    !blocks.some((b) => isNote(b) || isWide(b)) &&
-    !blocks.every((b) => b.t === "quote" || b.t === "h3")
-  )
-}
-
 /** Sections read on request: where the summary comes from, how it was checked. */
 export function isCollapsedSection(section: Section): boolean {
   return section.id === "provenance"
@@ -146,15 +73,15 @@ export interface Fact {
   lines: Inlines[]
 }
 
-/** Facts beside the title: at most this many. */
+/** Facts after the lede: at most this many. */
 export const MAX_FACTS = 6
 
 const KEY_RESULTS = /^key (metrics|results)$/i
 
 /**
- * The glance tiles as facts beside the title: the key metrics' tile is left out when the table is on
- * the page (it follows the lede); a line that is only a badge, and a tile's detail lines (those that
- * start muted, after a first line of their own), are left to the sections below.
+ * The glance tiles as the article's facts (after the lede): the key metrics' tile is left out when
+ * the table is on the page (it follows them); a line that is only a badge, and a tile's detail
+ * lines (those that start muted, after a first line of their own), are left to the sections below.
  */
 export function factsOf(glance: readonly GlanceTile[], hasMetrics: boolean): Fact[] {
   const facts: Fact[] = []
@@ -193,21 +120,6 @@ export function isFactList(fact: Fact): boolean {
       )
     })
   )
-}
-
-/** Facts beside the title; the others go on in the margin of the first section without notes. */
-export const FACTS_BESIDE_TITLE = 4
-
-/** The facts of the article: the glance tiles' (`factsOf`), then the lab when the record names one. */
-export function articleFacts(
-  glance: readonly GlanceTile[],
-  lab: Inlines,
-  hasMetrics: boolean
-): Fact[] {
-  const facts = factsOf(glance, hasMetrics)
-  return facts.length < MAX_FACTS && saysSomething(lab)
-    ? [...facts, { label: "Lab", lines: [lab] }]
-    : facts
 }
 
 /** A value cut for the margin, and whether anything was left out. */

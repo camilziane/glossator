@@ -27,9 +27,10 @@ test.describe("the article", () => {
       .locator("section[data-section]")
       .evaluateAll((sections) => sections.map((s) => s.id))
     expect(ids.slice(0, 3)).toEqual(["metrics", "figures", "overview"])
-    // the page's own bands have no number; the record's sections start at 1
+    // no numbers: each heading its section's icon, then its name
     await expect(page.locator("#metrics--title")).toHaveText("Key metrics")
-    await expect(page.locator("#overview--title")).toHaveText(/^1\s+Overview$/)
+    await expect(page.locator("#overview--title")).toHaveText("Overview")
+    await expect(page.locator("#overview--title svg[data-family='framing']")).toHaveCount(1)
     // the headline metrics as sentences, the whole table folded
     await expect(page.locator("#metrics details")).not.toHaveAttribute("open")
     for (const id of ["task", "siting", "provenance"]) expect(ids).toContain(id)
@@ -178,7 +179,11 @@ test.describe("the article", () => {
     test.skip(isPhone(), "clipboard permissions are a desktop Chromium feature here")
     await context.grantPermissions(["clipboard-read", "clipboard-write"])
     await page.goto(ARTICLE)
-    const copy = page.getByRole("button", { name: "Copy the quote with its citation" }).first()
+    // a quote folds after the text it glosses: "Quote · p. 4" opens it
+    const fold = page.locator("details[data-print-open]").filter({ hasText: "Quote" }).first()
+    await fold.locator("summary").scrollIntoViewIfNeeded()
+    await fold.locator("summary").click()
+    const copy = fold.getByRole("button", { name: "Copy the quote with its citation" })
     await copy.scrollIntoViewIfNeeded()
     await copy.focus()
     await page.keyboard.press("y")
@@ -246,10 +251,12 @@ test.describe("the article", () => {
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible()
     await expectAccessible(page)
     await page.locator("#siting").scrollIntoViewIfNeeded()
-    await expectAccessible(page)
+    // the slim bar fades in: its colours are measured once it is there
+    await expect(page.locator("#article-toc-bar")).toHaveCSS("opacity", "1")
+    await expectAccessible(page, { scrolled: true })
     await page.emulateMedia({ colorScheme: "dark" })
     await expect(page.locator("html")).toHaveClass(/dark/)
-    await expectAccessible(page)
+    await expectAccessible(page, { scrolled: true })
     await page.goto("/article/?b=grassland&k=mendes2023")
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible()
     await expectAccessible(page)

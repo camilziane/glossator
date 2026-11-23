@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
-from glossator import serve, sitedata
+from glossator import profiles, serve, sitedata
 from glossator.bibliography import bibliographies, collection
 from glossator.index import DB_NAME, build_index
 from glossator.paths import BUILD
@@ -46,6 +46,8 @@ def test_the_data_holds_every_article_as_blocks():
     assert [b["name"] for b in data["bibliographies"]] == [c.biblio.name for c in colls]
     for bib, coll in zip(data["bibliographies"], colls, strict=True):
         assert {a["key"] for a in bib["articles"]} == set(coll.recs)
+        assert bib["identities"] == profiles.identities(coll.biblio.plugin)
+        assert bib["identities"]["sections"]["overview"] == ["scan-text", "framing"]
         for table in bib["tables"]:
             for row in table["rows"]:
                 assert len(row) == len(table["head"])

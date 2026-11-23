@@ -3,7 +3,8 @@
 The same view the HTML page and the Markdown export are written from (`render.article_view`, `render.hub_tables`),
 as JSON: a block is `{"t": kind, ...}`, an inline part a string or `{"t": kind, ...}`. Every file is named by its
 path under `library/` (`library/<bibliography>/articles/<key>/paper.pdf`), which `glossator serve` serves beside the
-app, and another article by its bibliography and key. The web app holds no rule of a profile: it draws blocks."""
+app, and another article by its bibliography and key. The web app holds no rule of a profile: it draws blocks, and
+marks sections and labels as each bibliography's `identities` say (profiles.identities)."""
 
 from __future__ import annotations
 
@@ -16,6 +17,7 @@ from . import inbox
 from .bibliography import Collection
 from .paths import BUILD
 from .pdf import journal_offset, pdf_page_texts
+from .profiles import identities
 from .records import is_sentinel
 from .render import GENERATED, article_view, hub_order, hub_tables, short_authors
 from .util import lfs_oid, load_json, write_atomic
@@ -200,6 +202,7 @@ def bibliography(coll: Collection, found: dict | None = None, offsets: PageOffse
         "title": bi.title,
         "profile": bi.profile,
         "scope": bi.scope,
+        "identities": identities(bi.plugin),
         "complete": sum(1 for r in recs.values() if r.get("status") == "complete"),
         "tables": [
             {"id": sid, "title": title, "head": table[1], "rows": [[inline(c, bi.name) for c in r] for r in table[2]]}

@@ -150,7 +150,7 @@ function CommandItem({
       data-slot="command-item"
       data-checked={checked === undefined ? undefined : checked}
       className={cn(
-        "group/command-item relative flex min-h-9 cursor-default items-center gap-3 px-4 py-2 text-sm select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 data-selected:bg-accent data-selected:text-foreground data-selected:shadow-[inset_2px_0_0_var(--rubric)] [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:text-muted-foreground [&_svg:not([class*='size-'])]:size-4",
+        "group/command-item relative flex min-h-9 cursor-default items-center gap-3 px-4 py-2 text-sm select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 data-selected:bg-accent data-selected:text-foreground data-selected:row-bar [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:text-muted-foreground [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}

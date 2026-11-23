@@ -121,7 +121,7 @@ export function citeCard(text: string): CiteCard | null {
 }
 
 /**
- * An article's inline parts: typeset text, page references as rubric page marks (signes de renvoi:
+ * An article's inline parts: typeset text, page references as page marks (signes de renvoi:
  * `data-page` pairs them with the margin's notes), links to other articles of the library with a
  * card of what they found. `acronyms` (small caps) in serif text only.
  */

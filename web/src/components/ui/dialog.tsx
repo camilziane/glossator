@@ -50,8 +50,8 @@ function DialogOverlay({
         "fixed inset-0 isolate z-50",
         // The palette keeps the page in sight: a lighter scrim than a dialog's.
         motion === "instant"
-          ? "bg-[oklch(0.22_0.012_60/0.18)] dark:bg-[oklch(0.08_0.005_60/0.45)]"
-          : "bg-[oklch(0.15_0.01_60/0.28)] dark:bg-[oklch(0.08_0.005_60/0.6)]",
+          ? "bg-scrim-quiet"
+          : "bg-scrim",
         motion === "dialog"
           ? "data-open:animate-[fade-in_200ms_var(--ease-out)_both] data-closed:animate-[fade-out_120ms_var(--ease-in)_both]"
           : "data-closed:animate-fade-out",

@@ -95,7 +95,7 @@ describe("goToSection", () => {
     expect(goToSection("open-points")).toBe(true)
     expect(window.location.hash).toBe("#open-points")
     expect(document.activeElement).toBe(heading)
-    // far: at once, then a moment of rubric on the heading
+    // far: at once, then a moment of the highlight on the heading
     expect(scroll).toHaveBeenCalledWith({ top: expect.any(Number), behavior: "instant" })
     expect(tint).toHaveBeenCalledTimes(1)
     // the URL first: Back returns where the reader was

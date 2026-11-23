@@ -3,10 +3,12 @@
 @import "shadcn/tailwind.css";
 
 /*
- * The design language: "a plain serif page with red page numbers in the margin". Paper, ink, one
- * rubric red for structure; hairlines and space instead of cards; the serif for every word that is
- * read, a quiet sans for controls and data, a mono for tokens. ARCHITECTURE.md 3 documents every
- * token, utility and rule here; the contrast of each text pair is measured there (oklch -> sRGB).
+ * The design language: "a plain serif page, each kind of information marked". Paper and ink for
+ * everything that structures the page (links, rows, focus, progress); a few inks of one lightness
+ * for what has a meaning (the families of information, the rubric's marks, the states); hairlines
+ * and space instead of cards; the serif for every word that is read, a quiet sans for controls and
+ * data, a mono for tokens. ARCHITECTURE.md 3 documents every token, utility and rule here; the
+ * contrast of each text pair is measured there (oklch -> sRGB).
  */
 
 @custom-variant dark (&:is(.dark *));
@@ -49,12 +51,15 @@
   --color-paper: var(--background);
   --color-ink: var(--foreground);
   --color-wash: var(--muted);
+  --color-wash-2: var(--wash-2);
+  --color-wash-3: var(--wash-3);
   --color-rule: var(--border);
   --color-rule-strong: var(--rule-strong);
   --color-rubric: var(--rubric);
 
-  /* The app's semantic colours (text-link, bg-highlight, text-warning…). */
+  /* The app's semantic colours (text-link, decoration-link-line, bg-highlight, text-warning…). */
   --color-link: var(--link);
+  --color-link-line: var(--link-line);
   --color-highlight: var(--highlight);
   --color-highlight-foreground: var(--highlight-foreground);
   --color-warning: var(--warning);
@@ -64,6 +69,21 @@
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
   --color-star: var(--star);
+
+  /* What lies under a raised surface (bg-scrim…), and a figure's own white (bg-figure-paper). */
+  --color-scrim: var(--scrim);
+  --color-scrim-quiet: var(--scrim-quiet);
+  --color-scrim-figure: var(--scrim-figure);
+  --color-on-scrim: var(--on-scrim);
+  --color-figure-paper: var(--figure-paper);
+
+  /* The families of information (ARCHITECTURE.md 3.1): an icon and its label take their family's ink. */
+  --color-id-reference: var(--id-reference);
+  --color-id-framing: var(--id-framing);
+  --color-id-method: var(--id-method);
+  --color-id-data: var(--id-data);
+  --color-id-results: var(--id-results);
+  --color-id-documents: var(--id-documents);
 
   /* Faces: next/font's variables (src/app/fonts.ts) first, then fallbacks. */
   --font-serif:
@@ -246,12 +266,40 @@
   --input: oklch(0.62 0.012 75); /* a field's or a checkbox's edge (>= 3:1, WCAG 1.4.11) */
   --muted: oklch(0.95 0.012 85); /* wash: hover rows, selected row, code, kbd */
   --popover: oklch(0.985 0.008 85); /* the only raised surface */
-  --rubric: oklch(0.52 0.165 32);
-  --highlight: oklch(0.94 0.06 95); /* <mark> */
-  --danger: oklch(0.45 0.17 20);
-  --warning: oklch(0.5 0.11 65);
-  --success: oklch(0.46 0.09 150);
   --popover-shadow: 0 1px 0 var(--border), 0 8px 24px oklch(0 0 0 / 8%);
+
+  /*
+   * The inks: every hue at one lightness (about 0.5 on paper, 0.77 on dark paper), so none shouts
+   * and each reads as text (>= 4.5:1). The families mark kinds of information (who and where, why,
+   * how, on what, how much, the documents); the rubric marks the app and what is new; danger and
+   * success are states, always with their word; warning is the framing's amber.
+   */
+  --id-reference: oklch(0.5 0.1 255);
+  --id-framing: oklch(0.52 0.1 68);
+  --id-method: oklch(0.5 0.075 195);
+  --id-data: oklch(0.5 0.1 305);
+  --id-results: oklch(0.52 0.11 12);
+  --id-documents: var(--muted-foreground);
+  --rubric: oklch(0.49 0.125 25);
+  --danger: oklch(0.45 0.17 20);
+  --warning: var(--id-framing);
+  --success: oklch(0.49 0.09 150);
+  --highlight: oklch(0.9 0.09 95); /* <mark>: a fill on the matched word */
+
+  /*
+   * Treatments, one token each. They derive from the tokens above, so a theme that redefines those
+   * needs not repeat them (mixed in oklab: in oklch a near-neutral loses its hue).
+   */
+  --link-line: var(--input); /* a link's underline: a line that must be seen (>= 3:1) */
+  --selection: color-mix(in oklab, var(--foreground) 13%, transparent); /* selected text */
+  --highlight-light: color-mix(in oklab, var(--highlight) 55%, transparent); /* one word's match */
+  --wash-2: color-mix(in oklab, var(--muted), var(--foreground) 7%); /* a step past the wash */
+  --wash-3: color-mix(in oklab, var(--muted), var(--foreground) 12%); /* two steps */
+  --scrim: oklch(0.15 0.01 60 / 28%); /* behind a dialog, a sheet */
+  --scrim-quiet: oklch(0.22 0.012 60 / 18%); /* behind the palette: the page stays in sight */
+  --scrim-figure: oklch(0.15 0.01 60 / 85%); /* behind an enlarged figure, in every theme */
+  --on-scrim: oklch(0.95 0.01 85); /* words and controls on the figure's scrim */
+  --figure-paper: oklch(1 0 0); /* a figure's own white, in every theme */
 
   /* The shadcn names, mapped. */
   --card: var(--background);
@@ -302,13 +350,20 @@
   --input: oklch(0.55 0.01 75);
   --muted: oklch(0.235 0.008 70);
   --popover: oklch(0.235 0.009 70);
-  --rubric: oklch(0.72 0.13 38);
-  --highlight: oklch(0.4 0.07 95);
-  --danger: oklch(0.74 0.14 22);
-  --warning: oklch(0.8 0.11 80);
-  --success: oklch(0.78 0.1 150);
   /* On dark paper a shadow barely shows: a hairline all round defines the raised surface. */
   --popover-shadow: 0 0 0 1px var(--border), 0 8px 24px oklch(0 0 0 / 40%);
+  --id-reference: oklch(0.76 0.09 255);
+  --id-framing: oklch(0.8 0.095 80);
+  --id-method: oklch(0.77 0.075 190);
+  --id-data: oklch(0.76 0.085 305);
+  --id-results: oklch(0.76 0.085 12);
+  --rubric: oklch(0.75 0.1 28);
+  --danger: oklch(0.74 0.14 22);
+  --success: oklch(0.78 0.1 150);
+  --highlight: oklch(0.43 0.08 95);
+  /* A deeper scrim: the dark page under it is already dark. */
+  --scrim: oklch(0.08 0.005 60 / 60%);
+  --scrim-quiet: oklch(0.08 0.005 60 / 45%);
 
   /* Inside a popover (itself the wash's lightness) a hovered row needs a step more. */
   --accent: oklch(0.275 0.009 70);
@@ -464,17 +519,29 @@
   max-width: var(--measure);
 }
 
-/* A text link: ink with a rubric underline that firms on hover. */
+/*
+ * A text link: its words' colour, underlined in the link line (the field edge's grey, >= 3:1); under
+ * the pointer the line takes the words' colour. A link underlined only on hover (a title) takes
+ * `decoration-link-line hover:underline`.
+ */
 @utility link {
   color: inherit;
   text-decoration-line: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.18em;
-  text-decoration-color: color-mix(in oklab, var(--rubric) 55%, transparent);
+  text-decoration-color: var(--link-line);
   transition: text-decoration-color var(--dur-hover) var(--ease-out);
   &:hover {
-    text-decoration-color: var(--rubric);
+    text-decoration-color: currentColor;
   }
+}
+
+/*
+ * The highlighted row of a menu, a select or the palette, and the focused row of a list: a 2 px ink
+ * bar on its left edge (with the wash the row takes itself). Use it with its state: focus:row-bar.
+ */
+@utility row-bar {
+  box-shadow: inset 2px 0 0 var(--foreground);
 }
 
 /* ---------------------------------------------------------------------- layout utilities */
@@ -552,10 +619,10 @@
   }
 }
 
-/* A 1 px rubric line that grows with the page's scroll (an article's reading progress). */
+/* A 1 px ink line that grows with the page's scroll (an article's reading progress). */
 @utility reading-progress {
   height: 1px;
-  background: var(--rubric);
+  background: var(--foreground);
   transform-origin: left;
   transform: scaleX(0);
   @supports (animation-timeline: scroll()) {
@@ -607,12 +674,12 @@
     cursor: pointer;
   }
   ::selection {
-    background: color-mix(in oklab, var(--rubric) 18%, transparent);
+    background: var(--selection);
   }
   /*
    * One focus ring on everything focusable: 2 px of ink, 2 px out (DESIGN 3). Controls draw it
    * closer (inputs -1 px, segmented options inset); rows of menus and the palette show the wash and
-   * a rubric bar instead (their own rule, in the components).
+   * an ink bar instead (`row-bar`, in the components).
    */
   :focus-visible {
     outline: 2px solid var(--ring);
@@ -622,13 +689,19 @@
   [data-entry-focus]:focus-visible {
     outline: none;
   }
-  /* Search matches: a highlighter stroke under the words, no padding, no width change. */
+  /* Search matches: the word on a fill of its own, in ink; no width change. */
   mark {
-    background: none;
-    color: inherit;
-    box-shadow: inset 0 -0.42em 0 var(--highlight);
+    --mark-fill: var(--highlight);
+    background: var(--mark-fill);
+    color: var(--highlight-foreground);
+    border-radius: 2px;
+    box-shadow: 0 0 0 0.08em var(--mark-fill);
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
+  }
+  /* One word of the search found alone (among several typed): the same fill, lighter. */
+  mark[data-match="light"] {
+    --mark-fill: var(--highlight-light);
   }
   code,
   kbd,
@@ -741,6 +814,11 @@
 [data-kbd-hint][data-kbd-always] {
   opacity: 1;
 }
+/* A page mark that opens the PDF is a target of 24 px at least (WCAG 2.5.8), the lines unmoved. */
+a.page-mark {
+  padding: 4px 2px;
+  margin: -4px -2px;
+}
 @media (hover: none) and (pointer: coarse) {
   [data-kbd-hint] {
     display: none !important;
@@ -778,12 +856,12 @@
   @top-left {
     content: var(--print-head, "");
     font: 8pt var(--font-sans, sans-serif);
-    color: oklch(0.42 0.012 70);
+    color: var(--muted-foreground);
   }
   @bottom-right {
     content: counter(page) " / " counter(pages);
     font: 8pt var(--font-sans, sans-serif);
-    color: oklch(0.42 0.012 70);
+    color: var(--muted-foreground);
   }
 }
 @page wide {
@@ -804,11 +882,16 @@
     --input: oklch(0.62 0.012 75);
     --muted: oklch(0.95 0.012 85);
     --popover: oklch(1 0 0);
-    --rubric: oklch(0.52 0.165 32);
-    --highlight: oklch(0.94 0.06 95);
+    /* The inks a step darker for toner, as the hairlines. */
+    --id-reference: oklch(0.46 0.1 255);
+    --id-framing: oklch(0.48 0.1 68);
+    --id-method: oklch(0.46 0.075 195);
+    --id-data: oklch(0.46 0.1 305);
+    --id-results: oklch(0.48 0.11 12);
+    --rubric: oklch(0.45 0.125 25);
     --danger: oklch(0.45 0.17 20);
-    --warning: oklch(0.5 0.11 65);
     --success: oklch(0.46 0.09 150);
+    --highlight: oklch(0.9 0.09 95);
     --accent: var(--muted);
     --popover-shadow: none;
   }

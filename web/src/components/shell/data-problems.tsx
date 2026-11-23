@@ -35,7 +35,7 @@ export function DataProblems({
           {shown.map((p) => p.ref).join(", ")}
         </span>
         {problems.length > shown.length ? " and more" : null}.{" "}
-        <span className="whitespace-nowrap text-muted-foreground underline decoration-[color-mix(in_oklab,var(--rubric)_55%,transparent)] underline-offset-[0.18em] group-open/problems:hidden">
+        <span className="whitespace-nowrap text-muted-foreground underline decoration-link-line underline-offset-[0.18em] group-open/problems:hidden">
           Details
         </span>
       </summary>

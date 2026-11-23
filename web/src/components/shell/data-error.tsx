@@ -98,7 +98,7 @@ export function explainError(error: unknown): Explained {
 }
 
 const quietButton =
-  "inline-flex h-8 items-center rounded-[4px] border border-border px-3 text-sm font-medium transition-colors hover:border-[color-mix(in_oklab,var(--foreground)_28%,var(--border))] active:translate-y-px"
+  "inline-flex h-8 items-center rounded-[4px] border border-border px-3 text-sm font-medium transition-colors hover:border-input active:translate-y-px"
 
 /**
  * What went wrong while loading the library (or rendering a page), inline in the page: an h1, one

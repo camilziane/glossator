@@ -115,8 +115,8 @@ export const PaperRow = memo(function PaperRow({
         if (!ghost && !active && e.target === e.currentTarget) handlers.onActivate(paper.id)
       }}
       className={cn(
-        "relative flex cursor-default gap-2.5 border-b border-border py-2 pr-3 pl-2 transition-colors duration-150 select-none focus-visible:shadow-[inset_2px_0_0_var(--foreground)] focus-visible:outline-none sm:pl-2.5",
-        "hover:bg-[color-mix(in_oklab,var(--muted)_60%,transparent)] data-active:bg-muted",
+        "relative flex cursor-default gap-2.5 border-b border-border py-2 pr-3 pl-2 transition-colors duration-150 select-none focus-visible:row-bar focus-visible:outline-none sm:pl-2.5",
+        "hover:bg-muted/60 data-active:bg-muted",
         decided && "text-muted-foreground"
       )}
     >

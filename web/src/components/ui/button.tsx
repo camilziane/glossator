@@ -19,16 +19,15 @@ const buttonVariants = cva(
           "border-rule-strong bg-transparent text-foreground hover:border-input active:border-foreground/70 active:bg-muted aria-expanded:border-input aria-expanded:bg-muted",
         /** The one main action of a view: a 1 px ink outline, semibold ink words, no fill. */
         solid:
-          "border-foreground bg-transparent font-semibold text-foreground hover:bg-muted active:bg-[color-mix(in_oklab,var(--muted),var(--foreground)_7%)] aria-expanded:bg-muted",
+          "border-foreground bg-transparent font-semibold text-foreground hover:bg-muted active:bg-wash-2 aria-expanded:bg-muted",
         /** The same as `default` (shadcn's name). */
         outline:
           "border-rule-strong bg-transparent text-foreground hover:border-input active:border-foreground/70 active:bg-muted aria-expanded:border-input aria-expanded:bg-muted",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklab,var(--secondary),var(--foreground)_6%)] active:bg-[color-mix(in_oklab,var(--secondary),var(--foreground)_11%)] aria-expanded:bg-[color-mix(in_oklab,var(--secondary),var(--foreground)_6%)]",
-        ghost:
-          "text-foreground hover:bg-muted active:bg-[color-mix(in_oklab,var(--muted),var(--foreground)_7%)] aria-expanded:bg-muted",
-        /** A text link: ink with a rubric underline that firms on hover. */
-        link: "border-0 px-0 text-foreground underline decoration-[color-mix(in_oklab,var(--rubric)_55%,transparent)] decoration-1 underline-offset-[0.18em] hover:decoration-rubric",
+          "bg-secondary text-secondary-foreground hover:bg-wash-2 active:bg-wash-3 aria-expanded:bg-wash-2",
+        ghost: "text-foreground hover:bg-muted active:bg-wash-2 aria-expanded:bg-muted",
+        /** A text link: ink, underlined in the link line, the line in the words' ink on hover. */
+        link: "border-0 px-0 text-foreground underline decoration-link-line decoration-1 underline-offset-[0.18em] hover:decoration-current",
         /** Danger words, with the hairline of a quiet button. */
         destructive:
           "border-rule-strong bg-transparent text-danger hover:border-danger/60 active:border-danger active:bg-danger-soft",

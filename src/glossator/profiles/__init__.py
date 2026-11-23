@@ -31,7 +31,13 @@ its files beside it (its PROFILE.md, a vocabulary.json) and read them from `Path
         section="Study",
         lead="species",
         kinds={"survey": {"label": "Survey", "means": "counts or presence data from the field"}},
+        identities={"labels": {"Species": ("tag", "data"), "Sites": ("map-pin", "data")}},
     )
+
+`identities` is how the page marks the profile's sections (by id) and labels (a field's or a tile's): an icon of
+`ICONS` (lucide's names, which the web app draws) and one of the `FAMILIES`, whose colour the icon and the label take.
+A label left out takes its section's family and no icon; the base's sections are marked the same everywhere
+(`BASE_IDENTITIES`).
 
 A plugin is code: glossator imports it, with your rights, whenever it opens a bibliography of that profile or lists
 the profiles (`glossator bibs`, `init`, `--help`). Keep plugins only in a library you own, and read the plugins of a
@@ -39,7 +45,7 @@ library you did not write before you open it. A bibliography whose plugin is mis
 command that reads it, with an error naming the bibliography and the plugin.
 
 The API: `Profile` (what a plugin defines), `get(name, library)` (one profile), `available()` (the built-ins and the
-library's plugins), `template(name)` and `render_template(name, ...)` (a profile's PROFILE.md), and the command-line
+library's plugins), `identities(profile)` (its marks over the base's, as the data gives them to the web app), `template(name)` and `render_template(name, ...)` (a profile's PROFILE.md), and the command-line
 hook `add_commands(sub)` / `run_command(args, biblio)` for the commands a plugin adds (`Profile.commands`). The
 building blocks of a plugin are in `glossator.records` (S, I, B, QUOTE, RESULT, todo, quote_skeleton,
 result_skeleton, vocabularies, vlabel, is_sentinel, pending), `glossator.render` (val, vals, vword, joined, as_text,
@@ -62,6 +68,30 @@ from ..records import HEAD, TAIL, VOCAB, Vocabulary, record_model, vocabularies
 BUILTIN = ("ml", "epidemio")
 PLUGINS = "profiles"  # the folder of library/ that holds its plugins
 PLUGIN_FILE = "profile.py"
+
+# How the page marks a kind of information: an icon (lucide's name: the web app draws these, web/src/lib/identity.ts)
+# and a family, whose colour every icon and label of the family takes (web/src/app/globals.css).
+FAMILIES = ("reference", "framing", "method", "data", "results", "documents")
+ICONS = frozenset(
+    {
+        "activity", "arrow-right-from-line", "arrow-right-to-line", "axis-3d", "book-open", "box", "chart-column",
+        "circle-question-mark", "clipboard-list", "code-xml", "cpu", "database", "drafting-compass", "dumbbell",
+        "file-text", "flask-conical", "globe", "hammer", "hash", "history", "image", "landmark", "layers", "lightbulb",
+        "link", "map-pin", "messages-square", "network", "notebook-pen", "paperclip", "person-standing", "puzzle",
+        "quote", "ruler", "scan-text", "search", "stethoscope", "tag", "target", "text-quote", "type", "user", "users",
+        "workflow",
+    }
+)  # fmt: skip
+# The sections and labels of every record's base (records.py), marked the same in every bibliography.
+BASE_IDENTITIES: dict[str, dict[str, tuple[str, str]]] = {
+    "sections": {
+        "overview": ("scan-text", "framing"),
+        "open-points": ("circle-question-mark", "framing"),
+        "related": ("link", "reference"),
+        "provenance": ("notebook-pen", "documents"),
+    },
+    "labels": {"Figure": ("image", "documents")},
+}
 
 
 class ProfileError(Exception):
@@ -97,11 +127,25 @@ class Profile:
     )  # the base's TODOs it words otherwise: one_line, abstract, read
     lock: str = ".work/.lock"  # the lock file of parallel writes, relative to the bibliography's folder
     order: int = 0  # bibliographies are listed by this, then by name
+    # How the page marks its sections (by id) and its labels (a field's or a tile's, as the view writes it):
+    # {"sections": {id: (icon, family)}, "labels": {label: (icon, family)}}, an icon of ICONS and a family of
+    # FAMILIES. A label it leaves out takes its section's family and no icon of its own; the base's are BASE_IDENTITIES.
+    identities: Mapping[str, Mapping[str, tuple[str, str]]] = field(default_factory=dict)
 
     def __post_init__(self):
         clash = sorted(set(self.sections) & (set(HEAD) | set(TAIL)))
         if clash:
             raise ProfileError(f"profile {self.name}: {', '.join(clash)} belong to the base of every record")
+        for kind, marks in self.identities.items():
+            if kind not in ("sections", "labels"):
+                raise ProfileError(f"profile {self.name}: identities holds sections and labels, not {kind}")
+            for key, mark in marks.items():
+                icon, family = mark if isinstance(mark, (tuple, list)) and len(mark) == 2 else (None, None)
+                if icon not in ICONS or family not in FAMILIES:
+                    raise ProfileError(
+                        f"profile {self.name}: the identity of {key} is (icon, family), an icon of "
+                        f"profiles.ICONS and one of {', '.join(FAMILIES)}; it is {mark!r}"
+                    )
         if self.kind_vocab not in self.vocabularies:
             raise ProfileError(f"profile {self.name}: kind_vocab {self.kind_vocab} is not one of its vocabularies")
         for role, f in self.figure_roles.items():
@@ -127,6 +171,15 @@ class Profile:
     def figure_fields(self) -> dict[str, str]:
         """Its figure roles, and the section whose `figure` field names each."""
         return {r: f["section"] for r, f in self.figure_roles.items()}
+
+
+def identities(profile: Profile) -> dict[str, dict[str, list[str]]]:
+    """How the page marks a bibliography's sections and labels: the base's, then its profile's, as the data
+    gives them to the web app ({"sections": {id: [icon, family]}, "labels": {label: [icon, family]}})."""
+    return {
+        kind: {key: list(mark) for key, mark in {**BASE_IDENTITIES[kind], **profile.identities.get(kind, {})}.items()}
+        for kind in ("sections", "labels")
+    }
 
 
 _loaded: dict[Path, Profile] = {}

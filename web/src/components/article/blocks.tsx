@@ -2,10 +2,19 @@
 
 import type { ReactNode } from "react"
 
-import type { Block, BulletsBlock, FieldsBlock, ParagraphBlock } from "@/lib/data"
+import { IdentityLabel } from "@/components/content/identity"
+import {
+  plainText,
+  type Block,
+  type BulletsBlock,
+  type FieldsBlock,
+  type ParagraphBlock,
+} from "@/lib/data"
+import { labelIdentity } from "@/lib/identity"
 import { typeset } from "@/lib/typeset"
 import { cn } from "@/lib/utils"
 
+import { useArticleContext } from "./article-context"
 import { isMetricsTable } from "./article-model"
 import { FigureBlockView } from "./figure-block"
 import { QuoteNote, SourceNote, type NoteLayout } from "./gloss-notes"
@@ -21,20 +30,35 @@ export interface BlocksProps {
   label?: string
   /** How quotes and sources are drawn among the blocks: as notes after their text (the default). */
   notes?: NoteLayout
+  /** The section's id: a label its profile leaves out takes the section's family. */
+  section?: string
   className?: string
 }
 
 /**
  * Blocks in their order (sitedata.blocks): paragraphs, sub-headings, fields, bullets, tables, figures,
- * and quotes and sources as notes after the text they gloss. The glossed section puts the notes in the
- * margin instead (`GlossedSection`); this flow is for folded detail and for narrow places.
+ * and quotes and sources as notes after the text they gloss (folded detail, a group of a section).
  */
-export function Blocks({ blocks, pdf = null, label, notes = "inline", className }: BlocksProps) {
+export function Blocks({
+  blocks,
+  pdf = null,
+  label,
+  notes = "inline",
+  section,
+  className,
+}: BlocksProps) {
   const tableLabel = tableLabels(blocks, label)
   return (
     <div className={cn("flow-root space-y-5", className)}>
       {blocks.map((block, i) => (
-        <BlockView key={i} block={block} pdf={pdf} label={tableLabel[i]} notes={notes} />
+        <BlockView
+          key={i}
+          block={block}
+          pdf={pdf}
+          label={tableLabel[i]}
+          notes={notes}
+          section={section}
+        />
       ))}
     </div>
   )
@@ -57,11 +81,14 @@ export function BlockView({
   pdf,
   label,
   notes = "inline",
+  section,
 }: {
   block: Block
   pdf: string | null
   label?: string
   notes?: NoteLayout
+  /** The section's id (its fields' labels take its family when their profile leaves them out). */
+  section?: string
 }): ReactNode {
   switch (block.t) {
     case "p":
@@ -73,7 +100,7 @@ export function BlockView({
         </h3>
       )
     case "fields":
-      return <Fields block={block} pdf={pdf} />
+      return <Fields block={block} pdf={pdf} section={section} />
     case "bullets":
       return <Bullets block={block} pdf={pdf} />
     case "table":
@@ -101,25 +128,89 @@ function Paragraph({ block, pdf }: { block: ParagraphBlock; pdf: string | null }
   )
 }
 
+/** A field's value that says nothing is known: listed once, after the others. */
+const UNKNOWN = /^(?:not reported|not applicable|not stated|unknown)\.?$/iu
+/** A value short enough for the grid: a few words, no link, no sentence. */
+const SHORT_CHARS = 48
+
+type FieldItem = FieldsBlock["items"][number]
+
+/** How a field reads best: in the grid of short values, as a paragraph, or in the unknowns' line. */
+export function fieldShape(item: FieldItem): "short" | "long" | "unknown" {
+  const text = plainText(item.c).trim()
+  if (UNKNOWN.test(text)) return "unknown"
+  const plain = item.c.every((p) => typeof p === "string" || (p.t !== "a" && p.t !== "art"))
+  const sentences = /[;]|[.!?]\s+\p{Lu}/u.test(text)
+  return plain && text.length <= SHORT_CHARS && !sentences ? "short" : "long"
+}
+
 /**
- * Label and value pairs: from 1280 px the labels are side-heads in the left margin (small caps,
- * right-aligned, muted), so the values keep the full measure in the reading serif; narrower, each
- * label over its value.
+ * Label and value pairs, each label over its value and marked by its identity (its icon and its
+ * family's ink, `@/lib/identity`). The short values first, side by side in a grid ("Loop ·
+ * Offline"); then the paragraphs in their order; then, in one quiet line, what is not reported.
  */
-function Fields({ block, pdf }: { block: FieldsBlock; pdf: string | null }) {
+function Fields({
+  block,
+  pdf,
+  section,
+}: {
+  block: FieldsBlock
+  pdf: string | null
+  section?: string
+}) {
+  const { identities } = useArticleContext()
+  const shaped = block.items.map((item) => ({ item, shape: fieldShape(item) }))
+  const of = (shape: string) => shaped.filter((f) => f.shape === shape).map((f) => f.item)
+  const [short, long, unknown] = [of("short"), of("long"), of("unknown")]
+  const label = (item: FieldItem) => (
+    <IdentityLabel identity={labelIdentity(identities, item.label, section)}>
+      {typeset(item.label)}
+    </IdentityLabel>
+  )
+  // "Not reported: Causal, Parameters · Not applicable: Loop", in the record's words.
+  const said = new Map<string, string[]>()
+  for (const item of unknown) {
+    const word = plainText(item.c).trim().replace(/\.$/u, "").toLowerCase()
+    said.set(word, [...(said.get(word) ?? []), item.label])
+  }
   return (
-    <dl className="grid max-w-measure grid-cols-1 xl:-ml-[12.5rem] xl:max-w-none xl:grid-cols-[9.5rem_minmax(0,34rem)] xl:gap-x-12 xl:gap-y-2.5 [&>div:first-child>dt]:mt-0">
-      {block.items.map((item, i) => (
-        <div key={i} className="contents">
-          <dt className="mt-4 label xl:mt-0 xl:pt-[0.3125rem] xl:text-right xl:text-balance">
-            {typeset(item.label)}
-          </dt>
-          <dd className="min-w-0 reading break-words">
-            <InlineWithPages parts={item.c} pdf={pdf} />
-          </dd>
-        </div>
-      ))}
-    </dl>
+    <div className="max-w-measure space-y-5">
+      {short.length > 0 ? (
+        <dl className="grid grid-cols-2 gap-x-6 gap-y-3.5 sm:grid-cols-3">
+          {short.map((item, i) => (
+            <div key={i} className="min-w-0">
+              <dt>{label(item)}</dt>
+              <dd className="mt-0.5 font-serif text-note text-pretty break-words">
+                <InlineWithPages parts={item.c} pdf={pdf} />
+              </dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+      {long.length > 0 ? (
+        <dl className="space-y-5">
+          {long.map((item, i) => (
+            <div key={i}>
+              <dt>{label(item)}</dt>
+              <dd className="mt-1 min-w-0 reading break-words">
+                <InlineWithPages parts={item.c} pdf={pdf} />
+              </dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+      {said.size > 0 ? (
+        <p data-unknown-fields="" className="font-sans text-small text-muted-foreground">
+          {[...said].map(([word, labels], i) => (
+            <span key={word}>
+              {i > 0 ? " · " : null}
+              {word.charAt(0).toUpperCase() + word.slice(1)}:{" "}
+              {labels.map((l) => typeset(l)).join(", ")}
+            </span>
+          ))}
+        </p>
+      ) : null}
+    </div>
   )
 }
 

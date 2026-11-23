@@ -2,9 +2,12 @@
 record shares."""
 
 import argparse
+import dataclasses
 import json
+import re
 import shutil
 import textwrap
+from pathlib import Path
 
 import pytest
 
@@ -198,6 +201,47 @@ def test_a_builtin_view_and_its_tables():
     assert [t[0] for t in v["glance"]] == ["Kind", "Problem", "Idea", "Cost", "Key results"]
     assert [t[0] for t in hub_tables(coll)] == ["articles", "kinds"]
     assert tags(rec, coll) == ["Architecture"]
+
+
+def test_every_section_and_label_of_a_builtin_view_is_marked():
+    for b in bibliographies():
+        if b.plugin.name not in profiles.BUILTIN:
+            continue
+        coll = collection(b)
+        marks = profiles.identities(b.plugin)
+        v = article_view(next(iter(coll.recs.values())), coll)
+        assert {sid for sid, _, _ in v["sections"]} <= set(marks["sections"])
+        details = next(blocks for sid, _, blocks in v["sections"] if sid == "details")
+        fields = {label for block in details if block[0] == "fields" for label, _ in block[1]}
+        assert fields | {label for label, _ in v["glance"]} <= set(marks["labels"])
+
+
+def test_a_profile_marks_its_sections_and_labels_over_the_base():
+    marks = profiles.identities(profiles.builtin("ml"))
+    assert marks["sections"]["overview"] == ["scan-text", "framing"]  # the base's
+    assert marks["sections"]["details"] == ["flask-conical", "method"]  # the reference form's
+    assert marks["labels"]["Problem"] == ["puzzle", "framing"]  # the profile's own
+    json.dumps(marks)
+
+
+@pytest.mark.parametrize(
+    "marks",
+    [
+        {"colours": {"x": ("user", "reference")}},
+        {"sections": {"x": ("no-such-icon", "reference")}},
+        {"labels": {"x": ("user", "blue")}},
+        {"labels": {"x": "user"}},
+    ],
+)
+def test_an_identity_is_a_known_icon_and_a_family(marks):
+    with pytest.raises(ProfileError, match="identit"):
+        dataclasses.replace(profiles.builtin("ml"), identities=marks)
+
+
+def test_the_icons_are_the_ones_the_web_app_draws():
+    source = (Path(__file__).resolve().parents[1] / "web/src/lib/identity.ts").read_text(encoding="utf-8")
+    drawn = set(re.findall(r'^\s+"?([a-z0-9-]+)"?: [A-Z]\w*Icon,$', source, re.M))
+    assert drawn == profiles.ICONS
 
 
 def test_an_epidemiological_record_has_at_least_one_estimate(tmp_path):

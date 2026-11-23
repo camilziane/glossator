@@ -10,7 +10,7 @@ import {
   TODAY_TEXT,
 } from "@/components/overview/today-grid"
 
-import { glossGrid, Page, PAGE_GUTTERS, type PageWidth } from "./page"
+import { Page, PAGE_GUTTERS, type PageWidth } from "./page"
 
 /**
  * What a page shows while the library loads (and what the static export holds): the page's own grid
@@ -23,7 +23,7 @@ export type PageSkeletonVariant = "today" | "hub" | "article" | "search" | "inbo
 const WIDTH: Record<Exclude<PageSkeletonVariant, "inbox">, PageWidth> = {
   today: TODAY_PAGE_WIDTH,
   hub: "full",
-  article: "glossed",
+  article: "column",
   search: "full",
 }
 
@@ -178,44 +178,37 @@ function Hub() {
   )
 }
 
-/** An article: the glossed grid, its header beside the facts margin, the lede, a first section. */
+/** An article: one column, its header (kicker, title, three reference lines), the lede, a section. */
 function Article() {
   return (
-    <div className={cn(glossGrid, "gap-y-10")}>
-      <div className="hidden xl:block" />
+    <div className="space-y-10">
       <div className="min-w-0 space-y-2">
-        <Line type="label" width="10rem" />
-        <Line type="small" width="70%" />
+        <Line type="small" width="10rem" />
         <div className="pt-1">
           <Line type="display" width="100%" />
           <Line type="display" width="74%" />
         </div>
-        <Line type="small" width="82%" />
-        <Line type="small" width="40%" />
+        <div className="space-y-1.5 pt-3">
+          <Line type="ui" width="82%" />
+          <Line type="ui" width="40%" />
+          <Line type="ui" width="52%" />
+        </div>
       </div>
-      <div className="hidden space-y-3 border-t border-border pt-4 lg:block">
-        {Array.from({ length: 5 }, (_, i) => (
-          <div key={i}>
-            <Line type="label" width="5rem" />
+      <Paragraph type="lede" lines={4} last="40%" />
+      <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
+        {Array.from({ length: 4 }, (_, i) => (
+          <div key={i} className="space-y-1.5">
+            <Line type="small" width="5rem" />
             <Line type="small" width={width(i + 2)} />
           </div>
         ))}
       </div>
-      <div className="hidden xl:block" />
-      <div className="min-w-0">
-        <Paragraph type="lede" lines={4} last="40%" />
-      </div>
-      <div className="hidden lg:block" />
-      <div className="hidden pt-1.5 xl:block">
-        <Line type="read" width="6rem" />
-      </div>
       <div className="min-w-0 space-y-5">
-        <Paragraph type="read" lines={6} last="72%" />
-        <Paragraph type="read" lines={4} last="38%" />
-      </div>
-      <div className="hidden space-y-2 lg:block">
-        <Paragraph type="small" lines={4} last="56%" />
-        <Line type="small" width="5rem" />
+        <Line type="title" width="9rem" />
+        <Line type="small" width="6rem" />
+        <Paragraph type="read" lines={5} last="72%" />
+        <Line type="small" width="6rem" />
+        <Paragraph type="read" lines={3} last="38%" />
       </div>
     </div>
   )

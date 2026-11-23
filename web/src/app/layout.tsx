@@ -8,6 +8,7 @@ import { Providers } from "@/components/shell/providers"
 import { APP_NAME } from "@/lib/site"
 
 import { fontVariables } from "./fonts"
+import { ICON_COLORS } from "./icon-svg"
 
 export const metadata: Metadata = {
   title: { default: APP_NAME, template: `%s — ${APP_NAME}` },
@@ -18,10 +19,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   // The phone's tab bar reaches the screen's edge and pads itself by the safe area.
   viewportFit: "cover",
-  // The paper of each theme (the shell then follows the theme chosen in the app: ThemeColor).
+  // The paper of each theme, in sRGB (the shell then follows the theme chosen in the app: ThemeColor).
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f9f5ed" },
-    { media: "(prefers-color-scheme: dark)", color: "#1a1713" },
+    { media: "(prefers-color-scheme: light)", color: ICON_COLORS.light.paper },
+    { media: "(prefers-color-scheme: dark)", color: ICON_COLORS.dark.paper },
   ],
 }
 

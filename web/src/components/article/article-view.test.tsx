@@ -3,7 +3,6 @@ import userEvent from "@testing-library/user-event"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { rememberListOrder } from "@/hooks/use-list-memory"
-import { referenceParts } from "@/lib/cite"
 import { indexLibrary, plainText, readArticleView, type ArticleView as View } from "@/lib/data"
 import { formatDate } from "@/lib/format"
 import { routes } from "@/lib/routes"
@@ -12,13 +11,7 @@ import { typeset } from "@/lib/typeset"
 import { fixtureLibrary } from "../../../tests/utils/fixture"
 import { router, setNavigation } from "../../../tests/utils/navigation"
 import { renderWithApp } from "../../../tests/utils/render"
-import {
-  articleFacts,
-  colophonOf,
-  FACTS_BESIDE_TITLE,
-  keyMetricsSection,
-  lowerFirst,
-} from "./article-model"
+import { colophonOf, factsOf, keyMetricsSection, lowerFirst } from "./article-model"
 import { suggestArticles } from "./article-not-found"
 import { ArticleView } from "./article-view"
 
@@ -41,20 +34,39 @@ afterEach(() => {
 })
 
 describe("ArticleView", () => {
-  it("shows the header: kicker, cite, title, authors, venue, files and the Cite menu", async () => {
+  it("shows the header: kicker, title, the reference's lines, files and the Cite menu", async () => {
+    const user = userEvent.setup()
     const { entry, view } = fixture("grassland", "lindqvist2026")
     const { article, bib } = entry
     await open("grassland", "lindqvist2026")
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(typeset(article.title))
     const header = screen.getByRole("heading", { level: 1 }).closest("header")!
     expect(header).toHaveTextContent(`${bib.short}·Article 1 of ${bib.articles.length}`)
-    expect(header).toHaveTextContent(referenceParts(article).names[0]!)
-    // "… Last · 12 authors"
-    const count = /\((\d+) authors\)/.exec(article.authors)![1]
-    expect(header).toHaveTextContent(`· ${count} authors`)
-    // the venue line's date, as a reader writes it
+    // no cite line above the title: the reference's lines say it once
+    expect(header).not.toHaveTextContent(article.cite)
+    // the authors: the first three and the last, then all of them
+    const all = article.authors_full!
+    expect(header).toHaveTextContent(`Authors: ${all[0]!}`)
+    expect(header).toHaveTextContent(all.at(-1)!)
+    expect(header).not.toHaveTextContent(all[4]!)
+    await user.click(within(header).getByRole("button", { name: `Show all ${all.length} authors` }))
+    expect(header).toHaveTextContent(all[4]!)
+    // the university, the lab and the journal, each a line of its own
+    expect(header).toHaveTextContent("Affiliation: Northfield Institute of Synthetic Ecology")
+    expect(header).toHaveTextContent("Fictional Soil Sensing Lab")
+    expect(header).toHaveTextContent(`Journal: Journal of Imaginary Ecology · ${article.year}`)
+    // the identifiers one control away: the DOI and the date, copied or opened
     const iso = /\d{4}-\d{2}-\d{2}/.exec(JSON.stringify(view.meta))![0]
+    expect(header).not.toHaveTextContent(formatDate(iso))
+    expect(within(header).queryByRole("button", { name: "Copy the DOI" })).toBeNull()
+    await user.click(within(header).getByRole("button", { name: /^IDs/ }))
     expect(header).toHaveTextContent(formatDate(iso))
+    expect(within(header).getByRole("button", { name: "Copy the DOI" })).toBeInTheDocument()
+    expect(within(header).getByRole("link", { name: "Open the DOI (new tab)" })).toHaveAttribute(
+      "href",
+      `https://doi.org/${article.doi}`
+    )
+    await user.keyboard("{Escape}")
 
     const primary = view.files.find((f) => f.primary)!
     const pdf = within(header).getAllByRole("link", { name: /^PDF/ })[0]!
@@ -74,54 +86,56 @@ describe("ArticleView", () => {
     expect(within(header).queryByRole("link", { name: /record\.json/ })).toBeNull()
   })
 
-  it("lists the facts beside the title, leaving the key metrics to their table", async () => {
+  it("lists the facts after the lede, each marked, leaving the key metrics to their table", async () => {
     const { view } = fixture("grassland", "lindqvist2026")
     await open("grassland", "lindqvist2026")
     const facts = screen.getByRole("region", { name: "Facts" })
-    const terms = within(facts)
-      .getAllByRole("term")
-      .map((t) => t.textContent)
-    expect(terms).toEqual(articleFacts(view.glance, view.lab, true).map((f) => f.label))
-    expect(terms).not.toContain("Key metrics")
+    const terms = within(facts).getAllByRole("term")
+    expect(terms.map((t) => t.textContent)).toEqual(factsOf(view.glance, true).map((f) => f.label))
+    expect(terms.map((t) => t.textContent)).not.toContain("Key metrics")
+    // each label with its icon in its family's ink
+    expect(terms[0]!.querySelector("svg[data-family='method']")).not.toBeNull()
     // a label leads to the section that tells it all
     expect(within(facts).getByRole("link", { name: "Task" })).toHaveAttribute("href", "#task")
   })
 
-  it("adds the lab to few facts", async () => {
-    await open("grassland", "brandt2024grid")
-    const facts = screen.getByRole("region", { name: "Facts" })
-    expect(within(facts).getAllByRole("term").at(-1)).toHaveTextContent("Lab")
+  it("says nothing of a university or a lab the record does not name", async () => {
+    await open("grassland", "okafor2025")
+    const header = screen.getByRole("heading", { level: 1 }).closest("header")!
+    expect(header).not.toHaveTextContent("Affiliation")
+    expect(header).not.toHaveTextContent("not reported")
   })
 
-  it("puts the key metrics first, then the figures, then the record's sections from 1", async () => {
+  it("puts the key metrics first, then the figures, then the record's sections, each marked", async () => {
     const { view } = fixture("grassland", "lindqvist2026")
     const metrics = keyMetricsSection(view.sections)!
     const others = view.sections.filter((s) => s !== metrics)
     await open("grassland", "lindqvist2026")
     const ids = [...document.querySelectorAll("section[data-section]")].map((s) => s.id)
     expect(ids).toEqual([metrics.id, "figures", ...others.map((s) => s.id)])
-    // the page's own bands have no number; the record's sections are numbered from 1
-    expect(screen.getByRole("heading", { level: 2, name: metrics.title })).toHaveTextContent(
-      new RegExp(`^${metrics.title}$`)
-    )
-    expect(screen.getByRole("heading", { level: 2, name: "Figures" })).toHaveTextContent(
-      /^Figures$/
-    )
-    expect(document.getElementById(`${others[0]!.id}--title`)).toHaveTextContent(
-      new RegExp(`^1\\s+${others[0]!.title}$`)
-    )
+    // no numbers: each heading its section's icon (its profile's mark), then its name
+    const metricsHeading = screen.getByRole("heading", { level: 2, name: metrics.title })
+    expect(metricsHeading).toHaveTextContent(new RegExp(`^${metrics.title}$`))
+    expect(metricsHeading.querySelector("svg[data-family='results']")).not.toBeNull()
+    const figures = screen.getByRole("heading", { level: 2, name: "Figures" })
+    expect(figures.querySelector("svg[data-family='documents']")).not.toBeNull()
+    const first = document.getElementById(`${others[0]!.id}--title`)!
+    expect(first).toHaveTextContent(new RegExp(`^${others[0]!.title}$`))
+    expect(first.querySelector("svg[data-family='framing']")).not.toBeNull()
     // no "On this page", no pager cards
     expect(screen.queryByRole("navigation", { name: "On this page" })).toBeNull()
     expect(screen.queryByRole("navigation", { name: /More articles/ })).toBeNull()
   })
 
-  it("glosses a section: its quote in an aside after the text, its page marks paired", async () => {
+  it("glosses a section: its quote folded after the text, its page marks paired", async () => {
     const { view } = fixture("grassland", "lindqvist2026")
     const section = view.sections.find((s) => s.blocks.some((b) => b.t === "quote"))!
     await open("grassland", "lindqvist2026")
     const region = document.getElementById(section.id)!
-    const aside = region.querySelector("aside")!
-    const quote = within(aside).getAllByRole("figure")[0]!
+    // "Quote · p. 4" opens it; it prints open
+    const fold = region.querySelector("details[data-print-open]")!
+    expect(fold.querySelector("summary")).toHaveTextContent(/^Quote( · p\. \d+)?$/)
+    const quote = fold.querySelector("figure")!
     expect(quote.querySelector("blockquote")).not.toBeNull()
     expect(
       within(quote).getByRole("button", { name: "Copy the quote with its citation" })
@@ -210,7 +224,7 @@ describe("ArticleView", () => {
     expect(writeText).toHaveBeenCalledWith("novak2024")
   })
 
-  it("writes the headline metrics as sentences, their sources beside, the table folded", async () => {
+  it("writes the headline metrics as sentences, their sources after, the table folded", async () => {
     const { view } = fixture("grassland", "lindqvist2026")
     const metrics = keyMetricsSection(view.sections)!
     const table = metrics.blocks.find((b) => b.t === "table")
@@ -224,8 +238,10 @@ describe("ArticleView", () => {
       `${plainText(starred[0]![2]!)}: ${lowerFirst(plainText(starred[0]![1]!))}`
     )
     expect(sentences[0]!.querySelector("strong")).not.toBeNull()
-    // each with its source and copy control in the margin
-    const notes = region.querySelectorAll("aside [data-gloss-note]")
+    // each with its source and copy control after it
+    const notes = [...region.querySelectorAll("[data-gloss-note]")].filter(
+      (n) => !n.closest("details")
+    )
     expect(notes).toHaveLength(starred.length)
     expect(
       within(notes[0] as HTMLElement).getByRole("button", {
@@ -237,17 +253,6 @@ describe("ArticleView", () => {
     expect(all).not.toHaveAttribute("open")
     expect(all.querySelector("summary")).toHaveTextContent(`All ${table.rows.length} metrics`)
     expect(within(all).getByRole("table")).toBeInTheDocument()
-  })
-
-  it("continues the facts beside the first section without notes", async () => {
-    const { view } = fixture("grassland", "lindqvist2026")
-    const facts = articleFacts(view.glance, view.lab, true)
-    await open("grassland", "lindqvist2026")
-    const overview = document.getElementById("overview")!
-    const continued = within(overview)
-      .getAllByRole("term")
-      .map((t) => t.textContent)
-    expect(continued).toEqual(facts.slice(FACTS_BESIDE_TITLE).map((f) => f.label))
   })
 
   it("draws a link to another article of the library as its cite line", async () => {

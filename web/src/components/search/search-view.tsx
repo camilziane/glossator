@@ -41,10 +41,17 @@ import { citeForHit, passageWithCitation } from "./citing"
 import { exampleQueries } from "./examples"
 import { queryTerms } from "./highlight"
 import { fileRef, groupHits, hitFromRef, hitPlace, orderedHits, type HitPlace } from "./hits"
+import { holds, kindCounts, kindGroups, linesOf } from "./kinds"
 import { PassageReader, readerSelection } from "./passage-reader"
 import { useRecentSearches, rememberSearch, type RecentSearch } from "./recent-searches"
 import { MODES, SCOPES, SearchControls } from "./search-controls"
-import { passageElement, ResultsSkeleton, SearchResults, type RowHandlers } from "./search-results"
+import {
+  KindFilter,
+  passageElement,
+  ResultsSkeleton,
+  SearchResults,
+  type RowHandlers,
+} from "./search-results"
 import {
   loadPassageText,
   useDebouncedValue,
@@ -58,6 +65,8 @@ import {
 const searchState = {
   ...searchParams,
   read: parseAsString.withDefault(""),
+  /** The kind of match the results are filtered by ("" for all of them). */
+  kind: parseAsString.withDefault(""),
 }
 
 const READER_ID = "passage-reader"
@@ -83,16 +92,9 @@ const SEARCH_SHORTCUTS: ShortcutSection = {
   ],
   legend: [
     { sign: <mark data-match="strong">ab</mark>, meaning: "Words of the search found together" },
+    { sign: <mark data-match="light">ab</mark>, meaning: "One word of the search, alone" },
     {
-      sign: (
-        <mark className="[box-shadow:inset_0_-0.3em_0_color-mix(in_oklab,var(--highlight)_70%,transparent)]">
-          ab
-        </mark>
-      ),
-      meaning: "One word of the search, alone",
-    },
-    {
-      sign: <span className="font-serif text-rubric">p.</span>,
+      sign: <span className="font-serif text-muted-foreground">p.</span>,
       meaning: "The page in the PDF: it opens there",
     },
     {
@@ -184,29 +186,46 @@ export function SearchView() {
       isApiUnavailable(indexStatus.error))
   const failed = search.status === "error" && !unavailable
 
-  const groups = useMemo(() => (response ? groupHits(response.hits, lib) : []), [response, lib])
-  const hits = useMemo(() => orderedHits(groups), [groups])
+  const found = useMemo(() => (response ? groupHits(response.hits, lib) : []), [response, lib])
+  const allHits = useMemo(() => orderedHits(found), [found])
   // What each supplementary file is (a referee report…), read from its first page.
   const fileKinds = useFileKinds(
-    hits.filter((h) => h.source.startsWith("supplementary/")).map(fileRef)
+    allHits.filter((h) => h.source.startsWith("supplementary/")).map(fileRef)
   )
   const places = useMemo(
     () =>
       new Map<string, HitPlace>(
-        hits.map((h) => [h.ref, hitPlace(h, lib.article(h.bib, h.key), fileKinds.get(fileRef(h)))])
+        allHits.map((h) => [
+          h.ref,
+          hitPlace(h, lib.article(h.bib, h.key), fileKinds.get(fileRef(h))),
+        ])
       ),
-    [hits, lib, fileKinds]
+    [allHits, lib, fileKinds]
   )
   const terms = useMemo(() => queryTerms(response?.query ?? debouncedQ), [response, debouncedQ])
-  const inResults = useMemo(() => new Set(groups.map((g) => g.ref)), [groups])
+  // The results by kind (an author, a section of a summary, a cited work…), and the kind shown.
+  const kinded = useMemo(() => kindGroups(found, places, terms), [found, places, terms])
+  const counts = useMemo(() => kindCounts(kinded), [kinded])
+  const kind = counts.some((c) => c.kind.key === params.kind) ? params.kind : "all"
+  const groups = useMemo(() => kinded.filter((g) => holds(g, kind)), [kinded, kind])
+  const hits = useMemo(
+    () => groups.flatMap((g) => linesOf(g, kind).map((l) => l.hit)),
+    [groups, kind]
+  )
+  const allShown = useMemo(() => kinded.filter((g) => holds(g, "all")).length, [kinded])
+  const kindOfRef = useMemo(
+    () => new Map(kinded.flatMap((g) => g.lines.map((l) => [l.hit.ref, l.kind] as const))),
+    [kinded]
+  )
+  const inResults = useMemo(() => new Set(found.map((g) => g.ref)), [found])
 
   // The list an article is opened from (Esc comes back), its order ([ and ] page within it), its
   // current passage (given back on a return).
   const from = routes.search({ q: debouncedQ || typed, bib: bib || undefined, scope, mode })
   const memory = useListMemory(listKey(from))
   useEffect(() => {
-    if (groups.length > 0) rememberListOrder(from, [...inResults])
-  }, [from, groups.length, inResults])
+    if (found.length > 0) rememberListOrder(from, [...inResults])
+  }, [from, found.length, inResults])
 
   const wide = useWideLayout()
   const phone = useIsMobile()
@@ -232,7 +251,7 @@ export function SearchView() {
 
   const typing = typed !== debouncedQ
   const busy = typed !== "" && (typing || search.status === "loading")
-  const noPassage = search.status === "done" && hits.length === 0
+  const noPassage = search.status === "done" && allHits.length === 0
   const twoColumns = wide && !!typed && !unavailable && !failed && !noPassage
   // Wide: the reader shows the current passage (or a shared link's, not in the results). Narrow: the
   // passage opened in the sheet.
@@ -249,13 +268,13 @@ export function SearchView() {
   }
   // A search counts as recent once its answer has been looked at a moment.
   useEffect(() => {
-    if (search.status !== "done" || !debouncedQ || hits.length === 0) return
+    if (search.status !== "done" || !debouncedQ || allHits.length === 0) return
     const timer = window.setTimeout(
       () => rememberSearch({ q: debouncedQ, bib, scope, mode }),
       RECENT_AFTER_MS
     )
     return () => window.clearTimeout(timer)
-  }, [search.status, debouncedQ, bib, scope, mode, hits.length])
+  }, [search.status, debouncedQ, bib, scope, mode, allHits.length])
 
   // Focus on entry: the current passage once the answer is drawn (its keys work at once), else the
   // field (type at once).
@@ -273,7 +292,8 @@ export function SearchView() {
   }
   const setQuery = (value: string) => {
     setChosen(null)
-    void setParams({ q: value || null, read: null })
+    // Another question, all its kinds of answer.
+    void setParams({ q: value || null, read: null, kind: null })
   }
 
   const select = (hit: SearchHit, focus = false) => {
@@ -443,8 +463,8 @@ export function SearchView() {
   }
 
   const countText =
-    search.status === "done" && response && hits.length > 0
-      ? `${formatCount(hits.length, "passage")} in ${formatCount(groups.length, "article")}`
+    search.status === "done" && response && allHits.length > 0
+      ? `${formatCount(allHits.length, "passage")} in ${formatCount(found.length, "article")}`
       : search.status === "done" && response
         ? `No passage says “${response.query}”`
         : null
@@ -469,7 +489,7 @@ export function SearchView() {
         <TitleFallback lib={lib} query={debouncedQ} bib={bib} from={from} />
       </div>
     )
-  } else if (response && hits.length === 0 && (noPassage || busy)) {
+  } else if (response && allHits.length === 0 && (noPassage || busy)) {
     // Nothing found (while the next answer comes, the sentence stays, dimmed).
     body = (
       <div className={cn("space-y-8 transition-opacity duration-150", busy && "opacity-55")}>
@@ -486,12 +506,23 @@ export function SearchView() {
         <TitleFallback lib={lib} query={response.query} bib={bib} from={from} quiet />
       </div>
     )
-  } else if (hits.length === 0) {
+  } else if (allHits.length === 0) {
     // The first answer is on its way (or the field is still being typed in): its shape, later.
     body = search.status === "loading" ? <ResultsSkeleton /> : null
   } else {
     body = (
       <>
+        {counts.length > 1 || kind !== "all" ? (
+          <KindFilter
+            counts={counts}
+            all={allShown}
+            kind={kind}
+            onKind={(k) => {
+              setChosen(null)
+              void setParams({ kind: k === "all" ? null : k, read: null })
+            }}
+          />
+        ) : null}
         <AlsoByTitle
           lib={lib}
           query={debouncedQ}
@@ -502,6 +533,7 @@ export function SearchView() {
         />
         <SearchResults
           groups={groups}
+          kind={kind}
           places={places}
           terms={terms}
           currentRef={current?.ref ?? null}
@@ -578,6 +610,7 @@ export function SearchView() {
                 hit={readerHit}
                 entry={lib.article(readerHit.bib, readerHit.key)}
                 place={placeOf(readerHit)}
+                kind={kindOfRef.get(readerHit.ref)}
                 terms={terms}
                 articleHref={articleHref(readerHit)}
                 className={cn(
@@ -614,6 +647,7 @@ export function SearchView() {
                 hit={sheetHit}
                 entry={lib.article(sheetHit.bib, sheetHit.key)}
                 place={placeOf(sheetHit)}
+                kind={kindOfRef.get(sheetHit.ref)}
                 terms={terms}
                 articleHref={articleHref(sheetHit)}
                 onClose={closeSheet}

@@ -392,6 +392,7 @@ export function ArticlesTable({ bib, model }: { bib: Bibliography; model: HubMod
             onRowKey={onRowKey}
             rowKeys="Enter Space p c"
             bodyRef={bodyRef}
+            identities={bib.identities}
             empty={noMatch}
           />
         )}

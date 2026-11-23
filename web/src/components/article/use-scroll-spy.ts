@@ -87,7 +87,7 @@ export function useScrollSpy(
 const FAR = 1.5
 /** The longest smooth jump. */
 const SMOOTH_MS = 300
-/** How long the rubric tint stays on the heading an instant jump lands on, before it fades. */
+/** How long the tint stays on the heading an instant jump lands on, before it fades. */
 const TINT_MS = 180
 
 /** Where the window's top goes to show `el` right under what covers the page's top. */
@@ -99,10 +99,10 @@ function reducedMotion(): boolean {
   return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false
 }
 
-/** A moment of rubric on the heading a far jump lands on, so the eye finds it. */
+/** A moment of the highlight on the heading a far jump lands on, so the eye finds it. */
 function tint(heading: HTMLElement | null): void {
   if (!heading || typeof heading.animate !== "function") return
-  const color = "color-mix(in oklab, var(--rubric) 18%, transparent)"
+  const color = "var(--highlight-light)"
   heading.animate(
     [
       { backgroundColor: color },

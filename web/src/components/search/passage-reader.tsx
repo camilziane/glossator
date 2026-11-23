@@ -7,12 +7,14 @@ import { useEffect, useRef, useState, type ReactNode } from "react"
 import { CiteLine } from "@/components/content/cite"
 import { CiteMenu } from "@/components/content/cite-menu"
 import { CopyButton } from "@/components/content/copy-button"
+import { IdentityLabel } from "@/components/content/identity"
 import { NoticeBadges } from "@/components/content/notice-badge"
 import { InlineCommand } from "@/components/content/cli-command"
 import { Button } from "@/components/ui/button"
 import { Kbd } from "@/components/ui/kbd"
 import { isApiUnavailable, type SearchHit } from "@/lib/api"
-import type { ArticleEntry } from "@/lib/data"
+import type { ArticleEntry, Identities } from "@/lib/data"
+import { labelIdentity, NO_IDENTITIES } from "@/lib/identity"
 import { guessLang } from "@/lib/lang"
 import { commands } from "@/lib/site"
 import { cn } from "@/lib/utils"
@@ -20,6 +22,7 @@ import { cn } from "@/lib/utils"
 import { passageWithCitation } from "./citing"
 import { MarkedText } from "./highlight"
 import type { HitPlace, MetricRow } from "./hits"
+import type { MatchKind } from "./kinds"
 import { PagedText, sentenceCase, splitValue } from "./passage-text"
 import { fieldName, parseRecordText, type RecordGroup } from "./snippet"
 import { cachedPassageText, usePassageText } from "./use-passage-search"
@@ -81,10 +84,16 @@ function RecordGroups({
   groups,
   terms,
   paperHref,
+  identities,
+  section,
 }: {
   groups: RecordGroup[]
   terms: readonly string[]
   paperHref: string | null
+  /** The bibliography's marks: a field's label takes its identity. */
+  identities: Identities
+  /** The summary's section the passage is in. */
+  section: string | null
 }) {
   return (
     <div className="space-y-6">
@@ -98,13 +107,19 @@ function RecordGroups({
                 “<MarkedText text={quote.value} terms={terms} grade acronyms />”
               </blockquote>
             ) : null}
-            <dl className="grid grid-cols-1 gap-x-5 gap-y-1.5 sm:grid-cols-[9.5rem_minmax(0,1fr)]">
+            <dl className="space-y-3">
               {group.lines
                 .filter((l) => l !== quote)
                 .map((line, i) => (
-                  <div key={i} className="contents">
-                    <dt className="label sm:pt-[0.3rem]">{line.label}</dt>
-                    <dd className="max-sm:mb-1.5">
+                  <div key={i}>
+                    <dt>
+                      <IdentityLabel
+                        identity={labelIdentity(identities, line.label, section ?? undefined)}
+                      >
+                        {line.label}
+                      </IdentityLabel>
+                    </dt>
+                    <dd className="mt-0.5">
                       <PagedText text={line.value} terms={terms} paperHref={paperHref} />
                     </dd>
                   </div>
@@ -149,12 +164,14 @@ function MetricRows({
     { label: "Source", text: metric.source },
   ]
   return (
-    <dl className="grid grid-cols-1 gap-x-5 gap-y-1.5 sm:grid-cols-[9.5rem_minmax(0,1fr)]">
+    <dl className="space-y-3">
       {rows.map((row) =>
         row.node || row.text ? (
-          <div key={row.label} className="contents">
-            <dt className="label sm:pt-[0.3rem]">{row.label}</dt>
-            <dd className="max-sm:mb-1.5">
+          <div key={row.label}>
+            <dt className="font-sans text-small font-semibold text-muted-foreground">
+              {row.label}
+            </dt>
+            <dd className="mt-0.5">
               {row.node ?? (
                 <PagedText
                   text={row.text ?? ""}
@@ -170,9 +187,7 @@ function MetricRows({
         ) : null
       )}
       {metric.headline ? (
-        <p className="col-span-full mt-1 text-ui text-muted-foreground">
-          A headline metric of the article.
-        </p>
+        <p className="mt-1 text-ui text-muted-foreground">A headline metric of the article.</p>
       ) : null}
     </dl>
   )
@@ -184,12 +199,14 @@ function ReaderBody({
   wholePage,
   terms,
   paperHref,
+  identities,
 }: {
   hit: SearchHit
   place: HitPlace
   wholePage: boolean
   terms: readonly string[]
   paperHref: string | null
+  identities: Identities
 }) {
   const [attempt, setAttempt] = useState(0)
   // A metric is read from the article's own table; anything else from the index.
@@ -234,7 +251,13 @@ function ReaderBody({
   }
   if (place.kind === "record") {
     return (
-      <RecordGroups groups={parseRecordText(result.text)} terms={terms} paperHref={paperHref} />
+      <RecordGroups
+        groups={parseRecordText(result.text)}
+        terms={terms}
+        paperHref={paperHref}
+        identities={identities}
+        section={place.sectionId}
+      />
     )
   }
   return (
@@ -275,6 +298,7 @@ export function PassageReader({
   hit,
   entry,
   place,
+  kind,
   terms,
   articleHref,
   onClose,
@@ -284,6 +308,8 @@ export function PassageReader({
   hit: SearchHit
   entry: ArticleEntry | undefined
   place: HitPlace
+  /** What the match is (an author, a cited work, a section…): the header says it with its icon. */
+  kind?: MatchKind
   terms: readonly string[]
   /** The article at the passage (with `from`). */
   articleHref: string
@@ -299,7 +325,7 @@ export function PassageReader({
     <span className="block title">
       <Link
         href={articleHref}
-        className="decoration-[color-mix(in_oklab,var(--rubric)_55%,transparent)] underline-offset-[0.18em] hover:underline"
+        className="decoration-link-line underline-offset-[0.18em] hover:underline"
       >
         {article?.title || hit.cite}
       </Link>
@@ -308,8 +334,21 @@ export function PassageReader({
   return (
     <div className={cn("flex min-h-0 flex-col", className)}>
       <div className="space-y-2 pb-4">
-        {/* What the passage is, said quietly: small caps of the regular weight, not a label's. */}
-        <p className="label font-normal tracking-[0.04em]">{placeLabel(place)}</p>
+        {/* What the passage is: its kind's icon and word in the family's ink, else said quietly. */}
+        {kind ? (
+          <p>
+            <IdentityLabel identity={kind.identity}>
+              {kind.key === "supplementary" || kind.key === "review"
+                ? (place.file?.role ?? kind.label)
+                : kind.label}
+              {place.page && place.kind !== "record" ? (
+                <span className="font-normal text-muted-foreground"> · page {place.page.page}</span>
+              ) : null}
+            </IdentityLabel>
+          </p>
+        ) : (
+          <p className="label font-normal tracking-[0.04em]">{placeLabel(place)}</p>
+        )}
         {titleSlot ? titleSlot(title) : title}
         {article ? (
           <p className="flex flex-wrap items-baseline gap-x-2 font-serif text-note text-muted-foreground">
@@ -336,7 +375,7 @@ export function PassageReader({
               <a href={pdf} target="_blank" rel="noopener noreferrer" aria-keyshortcuts="p">
                 {place.page && /\.pdf/i.test(pdf) ? (
                   <>
-                    PDF <span className="text-rubric">{place.page.text}</span>
+                    PDF <span className="text-muted-foreground">{place.page.text}</span>
                   </>
                 ) : (
                   "Open the file"
@@ -415,6 +454,7 @@ export function PassageReader({
             wholePage={wholePage}
             terms={terms}
             paperHref={place.paperHref}
+            identities={entry?.bib.identities ?? NO_IDENTITIES}
           />
         </div>
       </div>

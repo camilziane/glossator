@@ -6,11 +6,13 @@ import { cn } from "@/lib/utils"
  * The app has two grids (POLISH 10):
  * - `full`: the window's width at the page gutters (16 px on phones, 32 px from 768 px): the hub, the
  *   inbox, the search;
- * - `glossed`: the glossed grid, centred (`glossGrid`: margin, measure, gloss): Today, an article, the
- *   page not found. `reading` is its former name.
+ * - `column`: one column, centred (44 rem): an article, the same on every screen (labels over their
+ *   text, notes after it);
+ * - `glossed`: the glossed grid, centred (`glossGrid`: margin, measure, gloss): Today, the page not
+ *   found. `reading` is its former name.
  * `page` (76 rem, centred) is the former third width: move off it.
  */
-export type PageWidth = "full" | "glossed" | "reading" | "page"
+export type PageWidth = "full" | "column" | "glossed" | "reading" | "page"
 
 /**
  * The glossed grid of a reading page (the article): ≥ 1280 px a left margin for the rubrics
@@ -27,6 +29,8 @@ export const PAGE_GUTTERS = "px-4 md:px-8"
 const WIDTHS: Record<PageWidth, string> = {
   /** The window's width (the hub's tables, the inbox, the search). */
   full: "",
+  /** One column (an article): the measure and room for a wide table, centred. */
+  column: "max-w-[44rem]",
   /** The glossed grid's width (9.5 + 34 + 18.75 rem and two 3 rem gaps), centred. */
   glossed: "max-w-[68.25rem]",
   /** @deprecated The glossed grid's former name. */

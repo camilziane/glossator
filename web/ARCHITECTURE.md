@@ -81,71 +81,109 @@ matching, and a custom tokenizer (we fold accents: papers and summaries come in 
 languages, names carry diacritics). Fuse.js scans every document with a fuzzy matcher (slow and loose on multi-word
 queries); Orama is larger and async. Full text stays on the server (`/api/search`).
 
-## 3. Design system: the glossed page
+## 3. Design system: the marked page
 
-"A plain serif page with red page numbers in the margin." Paper, ink and one rubric red for
-structure; hairlines and space instead of cards; the serif for every word that is read, a quiet sans
-for controls and data, a mono for tokens; icons only where the icon is the label; no decoration
-that carries no information. It lives in `src/app/globals.css` (tokens in oklch: light in `:root`,
-dark in `.dark`, print under `@media print`; utilities; base rules), `src/app/fonts.ts`,
+"A plain serif page, one column at every width, each kind of information marked." Paper and ink for
+structure, a few inks of one lightness for meaning (3.1); hairlines and space instead of cards; the
+serif for every word that is read, a quiet sans for controls and data, a mono for tokens; an
+identity for each kind of information (an icon for its type, its family's ink for its role: section
+3.7), wherever the page names it; page numbers quiet, there when wanted; no decoration that carries
+no information. It lives in `src/app/globals.css` (tokens in oklch: light in `:root`, dark in
+`.dark`, print under `@media print`; utilities; base rules), `src/app/fonts.ts`,
 `src/components/ui/` (shadcn, restyled) and `src/components/content/` (the data's look).
 
 ### 3.1 Colour tokens
 
-| Token (Tailwind class)                               | Light                     | Dark                  | Use                                                                                   |
-| ---------------------------------------------------- | ------------------------- | --------------------- | ------------------------------------------------------------------------------------- |
-| `background` = `paper` (`bg-background`, `bg-paper`) | oklch(0.972 0.012 85)     | oklch(0.205 0.008 70) | The page. `card` is the paper too: no raised white cards.                             |
-| `foreground` = `ink` (`text-foreground`, `text-ink`) | oklch(0.22 0.012 60)      | oklch(0.90 0.014 85)  | Text. `primary` (a solid button), `ring` (focus) and `link` are the ink.              |
-| `muted-foreground`                                   | oklch(0.48 0.012 70)      | oklch(0.70 0.012 80)  | Secondary text, labels, meta.                                                         |
-| `border` = `rule`                                    | oklch(0.885 0.012 80)     | oklch(0.32 0.010 70)  | Hairlines between things.                                                             |
-| `rule-strong`                                        | oklch(0.80 0.012 75)      | oklch(0.42 0.010 70)  | A quiet button's hairline (its words identify it).                                    |
-| `input`                                              | oklch(0.62 0.012 75)      | oklch(0.55 0.010 75)  | The edge of a field or a checkbox (≥ 3:1: WCAG 1.4.11).                               |
-| `muted` = `wash` = `secondary`                       | oklch(0.950 0.012 85)     | oklch(0.235 0.008 70) | Hovered and selected rows, code, commands, skeletons.                                 |
-| `accent`                                             | = wash                    | oklch(0.275 0.009 70) | A hovered or highlighted row in a raised surface (in dark, a step above the popover). |
-| `popover`                                            | oklch(0.985 0.008 85)     | oklch(0.235 0.009 70) | Menus, dialogs, sheets, the palette: the only raised surfaces (`shadow-popover`).     |
-| `rubric` (`text-rubric`)                             | oklch(0.52 0.165 32)      | oklch(0.72 0.13 38)   | Structure only (below).                                                               |
-| `highlight`                                          | oklch(0.94 0.06 95)       | oklch(0.40 0.07 95)   | `<mark>`: search matches, an inset highlighter stroke.                                |
-| `danger` = `destructive`                             | oklch(0.45 0.17 20)       | oklch(0.74 0.14 22)   | Retractions, errors: always with the word.                                            |
-| `warning`                                            | oklch(0.50 0.11 65)       | oklch(0.80 0.11 80)   | Drafts, corrections, "keyword only".                                                  |
-| `success`                                            | oklch(0.46 0.09 150)      | oklch(0.78 0.10 150)  | "Accepted" status words only.                                                         |
-| `danger-soft`, `warning-soft`, `success-soft`        | the ink at 7–8 % in paper | at 10–12 %            | Kept for compatibility: new work writes the word in its ink, without a fill.          |
-| `chart-1…5`, `star`                                  | ink, then lighter inks    | lighter, then darker  | Bars and small charts are ink, never rubric; `star` (★ marks) is the muted ink.       |
+Few colours, each with one job:
 
-Print is the light set on white paper, the muted ink oklch(0.42 0.012 70) and the hairlines a step
-darker for toner.
+- **Paper and ink** (and their steps: the muted ink, the rules, the wash, the popover) draw all that
+  structures the page: text, links and their underline, focus, the current row's bar, the current
+  page's rule, the reading progress, the selection, charts.
+- **The families' inks** (`id-*`) mark kinds of information, and nothing else (3.7).
+- **The rubric** marks the app and what is new (below).
+- **Danger, warning and success** are states, always with their word. Warning is the framing
+  family's amber: one amber on the page.
+- **The highlight** is what was looked for: a search match, a heading a far jump lands on.
+
+Every ink sits at one lightness (about 0.5 on paper, 0.77 on dark paper, a step darker in print) and
+a moderate chroma (about 0.1), so none shouts and each reads as text; danger alone is stronger.
+
+| Token (Tailwind class)                               | Light                                                     | Dark                                  | Use                                                                                                        |
+| ---------------------------------------------------- | --------------------------------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `background` = `paper` (`bg-background`, `bg-paper`) | oklch(0.972 0.012 85)                                     | oklch(0.205 0.008 70)                 | The page. `card` is the paper too: no raised white cards.                                                  |
+| `foreground` = `ink` (`text-foreground`, `text-ink`) | oklch(0.22 0.012 60)                                      | oklch(0.90 0.014 85)                  | Text and structure (above). `primary`, `ring` (focus) and `link` are the ink.                              |
+| `muted-foreground`                                   | oklch(0.48 0.012 70)                                      | oklch(0.70 0.012 80)                  | Secondary text, labels, meta, page numbers.                                                                |
+| `border` = `rule`                                    | oklch(0.885 0.012 80)                                     | oklch(0.32 0.010 70)                  | Hairlines between things.                                                                                  |
+| `rule-strong`                                        | oklch(0.80 0.012 75)                                      | oklch(0.42 0.010 70)                  | A quiet button's hairline (its words identify it); the underline of the hub's citations (their face does). |
+| `input`                                              | oklch(0.62 0.012 75)                                      | oklch(0.55 0.010 75)                  | A line that must be seen (≥ 3:1, WCAG 1.4.11): the edge of a field or a checkbox.                          |
+| `link-line` (`decoration-link-line`)                 | = input                                                   | = input                               | A link's underline (the `link` utility); under the pointer, the words' colour.                             |
+| `muted` = `wash` = `secondary`                       | oklch(0.950 0.012 85)                                     | oklch(0.235 0.008 70)                 | Hovered and selected rows, code, commands, skeletons.                                                      |
+| `wash-2`, `wash-3`                                   | the wash with 7 % / 12 % of ink                           | the same mix (lighter)                | A control pressed, a secondary one hovered (`wash-2`) and pressed (`wash-3`).                              |
+| `accent`                                             | = wash                                                    | oklch(0.275 0.009 70)                 | A hovered or highlighted row in a raised surface (in dark, a step above the popover).                      |
+| `popover`                                            | oklch(0.985 0.008 85)                                     | oklch(0.235 0.009 70)                 | Menus, dialogs, sheets, the palette: the only raised surfaces (`shadow-popover`).                          |
+| `selection`                                          | the ink at 13 %                                           | the ink at 13 %                       | Selected text.                                                                                             |
+| `id-reference`                                       | oklch(0.50 0.10 255)                                      | oklch(0.76 0.09 255)                  | Who and where (3.7).                                                                                       |
+| `id-framing`                                         | oklch(0.52 0.10 68)                                       | oklch(0.80 0.095 80)                  | Why.                                                                                                       |
+| `id-method`                                          | oklch(0.50 0.075 195)                                     | oklch(0.77 0.075 190)                 | How.                                                                                                       |
+| `id-data`                                            | oklch(0.50 0.10 305)                                      | oklch(0.76 0.085 305)                 | On what.                                                                                                   |
+| `id-results`                                         | oklch(0.52 0.11 12)                                       | oklch(0.76 0.085 12)                  | How much.                                                                                                  |
+| `id-documents`                                       | = muted ink                                               | = muted ink                           | The sources.                                                                                               |
+| `rubric` (`text-rubric`)                             | oklch(0.49 0.125 25)                                      | oklch(0.75 0.10 28)                   | The app's mark and what is new (below).                                                                    |
+| `danger` = `destructive`                             | oklch(0.45 0.17 20)                                       | oklch(0.74 0.14 22)                   | Retractions, errors: always with the word.                                                                 |
+| `warning`                                            | = `id-framing`                                            | = `id-framing`                        | Drafts, corrections, "keyword only".                                                                       |
+| `success`                                            | oklch(0.49 0.09 150)                                      | oklch(0.78 0.10 150)                  | "Accepted" status words, a copy's check.                                                                   |
+| `highlight`                                          | oklch(0.90 0.09 95)                                       | oklch(0.43 0.08 95)                   | `<mark>`: a fill on the matched word.                                                                      |
+| `highlight-light`                                    | the highlight at 55 %                                     | the highlight at 55 %                 | One word found alone (`mark[data-match="light"]`); the moment of tint on a heading a far jump lands on.    |
+| `scrim`, `scrim-quiet`                               | oklch(0.15 0.01 60) at 28 %; oklch(0.22 0.012 60) at 18 % | oklch(0.08 0.005 60) at 60 %; at 45 % | Under a dialog or a sheet; under the palette (the page stays in sight).                                    |
+| `scrim-figure`, `on-scrim`                           | oklch(0.15 0.01 60) at 85 %; oklch(0.95 0.01 85)          | the same                              | Under an enlarged figure; the words and controls on it.                                                    |
+| `figure-paper`                                       | white                                                     | white                                 | A figure's ground, in every theme.                                                                         |
+| `danger-soft`, `warning-soft`, `success-soft`        | the ink at 7–8 % in paper                                 | at 10–12 %                            | Kept for compatibility: new work writes the word in its ink, without a fill.                               |
+| `chart-1…5`, `star`                                  | ink, then lighter inks                                    | lighter, then darker                  | Bars and small charts are ink, never rubric; `star` (★ marks) is the muted ink.                            |
+
+Print is the light set on white paper: the muted ink oklch(0.42 0.012 70), the hairlines and the
+inks (families, rubric, success) a step darker for toner.
 
 **Contrast** (WCAG 2 ratios from a real conversion: oklch → OKLab → linear sRGB, clipped, relative
-luminance), every text pair at least AA, most AAA:
+luminance; a tint is composited on its paper), every text pair at least AA, most AAA:
 
-| Pair                                                   | Light              | Dark               | Print              |
-| ------------------------------------------------------ | ------------------ | ------------------ | ------------------ |
-| ink on paper / wash / popover                          | 16.0 / 15.0 / 16.6 | 13.3 / 12.4 / 12.4 | 18.1 / 15.7 / 18.1 |
-| muted ink on paper / wash / popover                    | 6.0 / 5.7 / 6.3    | 6.7 / 6.2 / 6.2    | 8.5 / 7.3 / 8.5    |
-| rubric on paper / wash / popover                       | 5.5 / 5.2 / 5.7    | 6.9 / 6.4 / 6.4    | 6.0 / 5.2 / 6.0    |
-| danger on paper / wash / popover                       | 7.5 / 7.0 / 7.8    | 7.3 / 6.8 / 6.8    | 8.2 / 7.0 / 8.2    |
-| warning on paper / wash                                | 5.7 / 5.3          | 9.5 / 8.9          | 6.2 / 5.3          |
-| success on paper / wash                                | 6.3 / 5.9          | 9.3 / 8.7          | 6.8 / 5.9          |
-| ink / muted ink / rubric on accent (a highlighted row) | 15.0 / 5.7 / 5.2   | 11.0 / 5.6 / 5.7   | 15.7 / 7.3 / 5.2   |
-| ink on highlight (a match)                             | 14.6               | 6.8                | 15.3               |
-| ink on the selection (rubric 18 % on paper)            | 12.5               | 10.3               |                    |
-| paper on ink (a solid button)                          | 16.0               | 13.3               |                    |
-| danger / warning / success on their soft tint          | 6.7 / 5.1 / 5.7    | 6.2 / 8.1 / 8.0    |                    |
-| a field's edge (`input`) on paper / popover, non-text  | 3.4 / 3.5          | 3.7 / 3.4          |                    |
-| the focus ring (ink) on paper / wash, non-text         | 16.0 / 15.0        | 13.3 / 12.4        |                    |
+| Pair                                                                                    | Light              | Dark               | Print              |
+| --------------------------------------------------------------------------------------- | ------------------ | ------------------ | ------------------ |
+| ink on paper / wash / popover                                                           | 16.0 / 15.0 / 16.6 | 13.3 / 12.4 / 12.4 | 18.1 / 15.7 / 18.1 |
+| muted ink on paper / wash / popover                                                     | 6.0 / 5.7 / 6.3    | 6.7 / 6.2 / 6.2    | 8.5 / 7.3 / 8.5    |
+| ink / muted ink on accent (a highlighted row)                                           | 15.0 / 5.7         | 11.0 / 5.6         | 15.7 / 7.3         |
+| a family's ink (`id-*`) on paper / wash, the lowest                                     | 5.2 / 4.9          | 8.0 / 7.5          | 6.7 / 5.8          |
+| rubric on paper / wash / popover                                                        | 6.2 / 5.8 / 6.4    | 7.7 / 7.2 / 7.2    | 7.9 / 6.9 / 7.9    |
+| danger on paper / wash / popover                                                        | 7.5 / 7.0 / 7.8    | 7.3 / 6.8 / 6.8    | 8.2 / 7.0 / 8.2    |
+| warning (the framing's amber) on paper / wash                                           | 5.2 / 4.9          | 9.5 / 8.9          | 6.7 / 5.8          |
+| success on paper / wash                                                                 | 5.5 / 5.2          | 9.3 / 8.7          | 6.8 / 5.9          |
+| ink on highlight / highlight-light (a match)                                            | 12.9 / 14.2        | 6.0 / 9.0          | 13.5 / 15.4        |
+| ink / muted ink on the selection                                                        | 12.3 / 4.6         | 9.7 / 4.9          | 13.8 / 6.5         |
+| paper on ink                                                                            | 16.0               | 13.3               | 18.1               |
+| danger / warning / success on their soft tint                                           | 6.7 / 4.7 / 5.0    | 6.2 / 8.2 / 8.0    |                    |
+| `on-scrim` on the figure's scrim                                                        | 11.7               | 16.8               |                    |
+| `input` (a field's edge, a link's underline) on paper / wash, non-text                  | 3.4 / 3.2          | 3.7 / 3.4          | 3.6 / 3.2          |
+| the ink (focus ring, a row's bar, the progress line) on paper / wash / accent, non-text | 16.0 / 15.0 / 15.0 | 13.3 / 12.4 / 11.0 | 18.1 / 15.7 / 15.7 |
 
 Hairlines (`rule` 1.3:1, `rule-strong` 1.7–2.1:1) are separations, never the only edge of a control
-that needs one.
+that needs one: a line that must be seen is `input`.
 
-**Rubric is allowed for exactly**: the wordmark's first letter; section rubrics (numbers and names in
-the margin); page marks (signes de renvoi) in the text and the gloss; the in-scope ¶ and the
-inbox's "new" count; link underlines (the `link` utility: ink, a rubric underline at 55 % that firms
-on hover); the text selection (18 %); the 2 px bar of the highlighted row in menus and the palette;
-the reading-progress line. Never a fill, never a button, never in charts.
+**The rubric is allowed for exactly**: the app's mark (the wordmark's first letter, the favicon's
+letter); what is new (the inbox's new count in the top bar, the tab bar, the New view and Today's
+sentence); the in-scope ¶. Never a link, a row, a line, a page number, a fill, a button or a chart.
+
+**Structure is ink**: a link is its words' colour over the link line, the line in the words' colour
+under the pointer (the `link` utility; `decoration-link-line hover:underline` for a title underlined
+on hover); the highlighted row of a menu, a select or the palette, and the focused row of a page's
+list, take the wash and a 2 px ink bar (`row-bar`); the reading progress is a 1 px ink line; a lit
+page mark and its gloss note turn ink.
 
 **Mixing colours**: `color-mix(in oklab, …)`, never `in oklch`. Tailwind ships the tokens as `lab()`,
 and a near-neutral one mixed in oklch loses its hue (the result turns pink).
 
-Do not invent colours: add a token here and in globals.css (light, dark and print).
+Do not invent colours: add a token here and in globals.css (light, dark and print). A treatment used
+twice is a token or a utility, never a `color-mix(…)` or a literal in a component; a tint of a token
+is Tailwind's modifier (`bg-muted/60`). The favicon's colours (`src/app/icon-svg.ts`) are the tokens
+in sRGB: `icon-svg.test.ts` checks them against globals.css.
 
 ### 3.2 Typography
 
@@ -230,10 +268,11 @@ the table of rules and exceptions.
 
 ### 3.3 Layout, shape and surfaces
 
-- **Two grids.** Every page renders inside the shell's `<Page>` on one of two grids: `full` (the
-  window's width at the page gutters, 16 px and 32 px from 768 px: a hub, the inbox, the search) or
-  `glossed` (the glossed grid's width, centred, `glossGrid`: an article, Today, a page not found;
-  `reading` is its former name). `PAGE_GUTTERS` gives the gutters to a frame of one's own (the
+- **Three widths.** Every page renders inside the shell's `<Page>` at one of three widths: `full`
+  (the window's width at the page gutters, 16 px and 32 px from 768 px: a hub, the inbox, the
+  search), `column` (one column of 44 rem, centred: an article, the same on a phone and on a wide
+  screen, labels over their text and notes after it, never a margin) or `glossed` (the glossed
+  grid's width, centred, `glossGrid`: Today, a page not found; `reading` is its former name). `PAGE_GUTTERS` gives the gutters to a frame of one's own (the
   inbox's window-tall frame); the top bar has the same. `width="page"` (76 rem) is deprecated.
 - `--header-height` is 3 rem (the 48 px top bar); `html` has the matching `scroll-padding-top`
   (plus `--toc-bar-height` while an article's slim bar shows), so `#section` anchors land below it.
@@ -253,7 +292,7 @@ the table of rules and exceptions.
   `ClampObserver`, one ResizeObserver for every such box, measures each once per layout and sets
   `data-clamped`, where a static mask applies; no animation per box); `sticky-edge` (a
   sticky bar's hairline once the page has scrolled, static where scroll timelines lack);
-  `reading-progress` (a 1 px rubric line that grows with the page's scroll); `focus-inset` (the
+  `reading-progress` (a 1 px ink line that grows with the page's scroll); `focus-inset` (the
   focus outline drawn 2 px inside); `print-wide` (a landscape A4 page in print).
 - Breakpoints: 360 px phones and up; `md` (768 px) separates phones; the glossed grid starts at
   1024 px (one margin) and 1280 px (both margins).
@@ -319,9 +358,9 @@ the table of rules and exceptions.
   and named (`aria-keyshortcuts`); the page handles the key, in its own scope. sonner stays for rare
   app-wide messages: bottom left, never over a reading pane.
 - **Focus ring**: one, everywhere: 2 px of ink, 2 px out (`:focus-visible`, globals.css); inside
-  menus and the palette the highlighted row is the wash and a 2 px rubric bar; the current row of a
-  list in a page (a hub's table, the search's passages, the inbox's papers) is the wash, and its
-  focus a 2 px ink bar on its left edge (no box around a row). Never remove an outline without a
+  menus and the palette the highlighted row is the wash and a 2 px ink bar (`row-bar`); the current
+  row of a list in a page (a hub's table, the search's passages, the inbox's papers) is the wash, and
+  its focus the same ink bar on its left edge (no box around a row). Never remove an outline without a
   replacement.
 - Overlays (dialog, alert dialog, sheet) are a plain scrim, never a backdrop blur (it repaints the
   page behind on every change: slow keystrokes in the palette).
@@ -364,7 +403,7 @@ print`); chrome marked `data-print="hide"` or `print:hidden` stays off the page.
 | A word as a badge                                | `<Badge variant="default" \| "secondary" \| "destructive" \| "warning" \| "success" />` (`@/components/ui/badge`): small caps in the variant's ink, no fill, no frame.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | An inbox paper's relevance                       | `<RelevanceMark value showLabel? />` (`@/components/content/relevance`): the gutter mark, the ¶ (rubric) only for in scope (3), an ink • related (2), a muted · loosely (1), a muted ring unrelated or not rated; an image named by `relevanceDescription` ("Relevance 3 of 3: In scope").                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | An inbox paper's prior                           | `<PriorNote prior bibLabel words? />`: "closest to ML methods · 0.86", the number in tabular figures and a `meter` for screen readers; nothing for an unscored paper. Laid out as text: in a narrow margin the words wrap and "· 0.86" stays whole.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| A page reference                                 | `<PageMark page doc? href?>p. 5</PageMark>` (`@/components/content/page-mark`): rubric, no underline, its context's face and figures (old-style in prose, lining in a sans cell), a link to the PDF at that page, `data-page` from `pageKey()` ("5", "SI 15") to pair text and gloss; a 44 px target on touch screens. `pageRefOf(text)` finds one in a text ("Table 1 (p. 4)" → "p. 4"); `<InlineContent>` draws a link part whose text is a page reference as a page mark.                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| A page reference                                 | `<PageMark page doc? href?>p. 5</PageMark>` (`@/components/content/page-mark`): the muted ink, a dotted link line (solid, the words in ink, under the pointer), its context's face and figures (old-style in prose, lining in a sans cell), a link to the PDF at that page, `data-page` from `pageKey()` ("5", "SI 15") to pair text and gloss; a 44 px target on touch screens. `pageRefOf(text)` finds one in a text ("Table 1 (p. 4)" → "p. 4"); `<InlineContent>` draws a link part whose text is a page reference as a page mark.                                                                                                                                                                                                                                                                                                                                                                                    |
 | Text from the data                               | `<InlineContent parts context? lang? acronyms? />` (`@/components/content/inline`; typeset, page marks, `cell` puts sub-lines on their own line and marks no acronyms); a plain string: `<Typeset text lang? acronyms? />` or `typeset()`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | A citation line                                  | `<CiteLine card separator? venue? />` (`@/components/content/cite`): surnames in small caps, the venue in italic; `<FullReferenceText card />`: the full reference in Nature's style, "Jumper, J. et al. Highly accurate protein structure prediction with AlphaFold. _Nature_ 596, 583–589 (2021)."; `referenceParts` (the short lead "Jumper et al. 2021"), `fullReference`, `formatReference` (`@/lib/cite`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | Citing an article                                | One rule for a page, everywhere (`citePlace(card, { page, file? })` → `{ words, latex }`, `@/lib/cite`): the PDF published and `journal_offset` known → the journal page ("p. 585", `\cite[p.~585]{key}`); a manuscript (`version` accepted or submitted, `isManuscript`) → "manuscript p. 2", `\cite{key} % manuscript p. 2`; otherwise "PDF p. 2", `\cite{key} % PDF p. 2`; a supplementary file names itself (`file`: "SI 1, p. 15", `\cite[SI~1, p.~15]{key}`). `quoteWithCitation(words, card, place?, { quote? })`; `<CiteMenu card place? keyHint? open? onOpenChange? />` (`@/components/content/cite-menu`): the key, the `\cite` at the place, the BibTeX entry (every author, volume, number, pages: `bibtex(card)`), the full reference; choosing one copies it and the trigger says "Copied" at its own width (a short "Cite" shows ✓ alone). `latexCite(key, page?)` only for a page already the journal's. |
@@ -401,16 +440,18 @@ print`); chrome marked `data-print="hide"` or `print:hidden` stays off the page.
   `transition: transform 80ms, colours 120ms`. Buttons (`@/components/ui/button`): `default` and
   `outline` quiet (hairline, ink words), `solid` (a 1 px ink outline and semibold ink words: one main
   action per view; no fill of ink, never a slab of light in dark mode),
-  `secondary` (the wash), `ghost`, `link` (ink, rubric underline), `destructive` (danger words).
+  `secondary` (the wash), `ghost`, `link` (ink, the link line), `destructive` (danger words).
 - **Focus**: one outline everywhere, 2 px of ink 2 px out (`:focus-visible`, globals.css). Fields
   draw it on their edge (−1 px), tabs and segmented options inside (−2 px, `focus-inset`); rows of
-  menus, selects and the palette show the wash and a 2 px rubric bar instead; the rows of a page's
-  lists the wash and a 2 px ink bar. No `ring-*` focus; a pointer click leaves no ring (a tab
+  menus, selects and the palette show the wash and a 2 px ink bar instead (`row-bar`), as the rows of
+  a page's lists do. No `ring-*` focus; a pointer click leaves no ring (a tab
   focused by Radix on mousedown included: `ui/tabs`). The focus a page gives itself on arrival
   shows no ring (`focus({ focusVisible: false })`, `data-entry-focus` until the first key): the
   current row's wash says where it is.
-- **Selection** is the rubric at 18 %. **Search matches** (`<mark>`) are a highlighter stroke under
-  the words (`box-shadow: inset 0 -0.42em 0 var(--highlight)`), no padding, no width change.
+- **Selection** is the ink at 13 % (`selection`). **Search matches** (`<mark>`) are a fill on the
+  matched word (`highlight`, a hair of it beyond the letters with `box-shadow`), in ink, no width
+  change; a single word among several typed is the same fill at 55 % (`highlight-light`, drawn by
+  `mark[data-match="light"]`).
 - **Touch** (`pointer: coarse`): buttons, toggles, tabs, select triggers and fields at least 44 px
   tall; icon buttons 44 × 44 with 20 px glyphs; a checkbox's hit area 44 px; inline links 6 px more
   above and below without moving the lines; a row marked `data-touch-row`, and a button, take the
@@ -429,14 +470,53 @@ print`); chrome marked `data-print="hide"` or `print:hidden` stays off the page.
   margins). An article prints its folded detail closed but Key metrics' full table
   (`data-print-open`).
 - **The app's mark**: APP_NAME's first letter in the serif's semibold, rubric on paper in a 1 px ink
-  frame (`src/app/icon-svg.ts`; the capitals' outlines in `icon-glyphs.ts`, from Source Serif 4
-  SmText, since an icon cannot load a web font). `icon.tsx` writes `/icon/mark.svg` (its dark
+  frame (`src/app/icon-svg.ts`, its colours the tokens' sRGB, checked by its test; the capitals'
+  outlines in `icon-glyphs.ts`, from Source Serif 4 SmText, since an icon cannot load a web font). `icon.tsx` writes `/icon/mark.svg` (its dark
   colours inside, by `prefers-color-scheme`) and `/icon/mark.png` (32 px); `apple-icon.tsx`
   `/apple-icon/mark.png` (180 px, unframed: the system rounds it). The ids carry the extensions, so
   the export's files are served with their types.
 - **Toasts** (sonner's `<Toaster>`, `@/components/ui/sonner`): app-wide messages only (a decision
   speaks in the status line), bottom left, one line, no close button, no icon but a pending
   spinner, 200 ms in and 120 out.
+
+### 3.7 Identities
+
+Each kind of information has an identity: an icon (lucide's) for its type and its family's ink for
+its role, the same wherever the page names it (an article's header, its sections, fields and facts,
+the search's filters and lines, the reader). The families, in reading order, are the `id-*` tokens
+(3.1): **reference** (who and where: authors, university, journal, title, identifiers, cited works,
+related articles), **framing** (why: overview, problem, idea, condition, open points), **method**
+(how: method, architecture, input, training, task, model, code), **data** (on what: datasets,
+participants, population, devices), **results** (how much: key metrics and results, cost) and
+**documents** (the sources: the paper's text, supplementary files, referee reports, quotes,
+figures, curation notes; the muted ink). Colour never carries meaning alone: an icon or a word
+always names the type.
+
+- What the app draws itself has its identity in `@/lib/identity` (`APP`: author, university,
+  journal, identifiers, title, cites, paper, supplementary, review, quote, figures, curation).
+- A bibliography's sections and labels are marked by its profile: `identities` in each
+  bibliography of the data (written by `profiles.identities`; a profile declares its own in
+  Python), read with `sectionIdentity(identities, id)` and `labelIdentity(identities, label,
+sectionId?)`. A label its profile leaves out takes its section's family, without an icon. The
+  icons a profile may name are `ICONS`, the same list as `profiles.ICONS` (a Python test compares
+  them). The app holds no profile's own labels: the public code never names a library's words.
+- Draw them with `<IdentityIcon identity />` (the icon in its family's ink, decorative) and
+  `<IdentityLabel identity>words</IdentityLabel>` (the icon, then the words in the sans, semibold,
+  small, in the family's ink), from `@/components/content/identity`.
+- An article: its header's three lines (authors, university and lab, journal and year; the volume,
+  the date and the identifiers behind "IDs"), each section's heading (its icon, its name: no
+  number), each field's label over its value, each fact's label, the slim bar's current section.
+  A section's fields read in three bands (`fieldShape` in `blocks.tsx`): the short values first,
+  side by side in a grid (a few words, no link, no sentence: "Loop · Offline"), then the paragraphs
+  in their order, then one quiet line for what the record does not know ("Not reported: Causal,
+  Parameters", in the record's words).
+- A hub: the Articles table's column heads that name a label of the profile carry its icon.
+- The search: `components/search/kinds.ts` sorts each match (an author the query names, from the
+  article's card; its title; a section of its summary; the paper's text; a work it cites, its name
+  written as a citation writes it; a supplementary file; a referee report; curation notes). The
+  filters above the results name the kinds they hold with their counts of articles (one click
+  shows one kind, a second all of them; curation notes only when asked: `?kind=`), and each line
+  of a result starts with its kind's icon and word.
 
 ## 4. Folder structure and features
 
@@ -470,7 +550,7 @@ web/
     │   │                page marks, citations, the full reference and the Cite menu,
     │   │                copy buttons, notice badges, relevance marks and priors
     │   ├── overview/    Today (/) and the 404                                          overview
-    │   ├── article/     the article view, its glossed grid and the block renderer      article
+    │   ├── article/     the article view, its column and the block renderer            article
     │   ├── hub/         a bibliography's tables and the preview drawer                 hub
     │   ├── search/      the search page and the ⌘K palette (command-palette.tsx)      search
     │   └── inbox/       the triage: views, list, reading pane, decisions               inbox
@@ -502,13 +582,16 @@ web/
     clamp (`data-clamp`, `data-cut`), and the preview drawer: a non-modal Sheet given `role="region"`, so global keys work
     while it is open; the row keeps the focus; Esc returns to the row. Its links carry the list
     (`from`) and remember its order as `<bib>/<key>` refs.
-  - `article/`: the headline metrics as sentences in the text column, each with its source note in
-    the margin, the whole table under "All n metrics" (`m` opens it); quotes and sources sit in the
-    margin as `[data-gloss-note]` beside the text they follow (`segmentBlocks`); marks of the same page in a section light each other
+  - `article/`: one column at every width (`grid.ts`, `Page width="column"`); the header's three
+    reference lines with their identities and the identifiers behind "IDs"; the facts after the lede;
+    the headline metrics as sentences, each with its source line after it, the whole table under "All
+    n metrics" (`m` opens it); quotes fold under "Quote · p. 5" after the text they gloss (open in
+    print) and sources are a small line, both `[data-gloss-note]`; marks of the same page in a section light each other
     (`usePageMarks`: `data-page`, `data-lit`); the slim bar (40 px, `#article-toc-bar`) shows once
     the title scrolls away and sets `--toc-bar-height`; `c` opens the visible Cite menu; Esc closes
     what is open first, and returns to the list only when the article has one (`from`).
-  - `search/`: the search page (the field and the filter sentence; results grouped by article; a
+  - `search/`: the search page (the field and the filter sentence; the kinds' filters (`kinds.ts`, 3.7);
+    results grouped by article, a line per passage with its kind's identity; a
     40/60 reader at ≥ 1280 px, a sheet below; keys ↑↓ Enter p c y Esc; recent searches in
     sessionStorage, else three example queries from the library's titles, `examples.ts`) and the ⌘K
     palette; `snippet.ts` turns the server's snippets and flattened record passages into readable,

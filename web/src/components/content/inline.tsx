@@ -24,7 +24,7 @@ interface Options {
  *
  * Text is typeset for the page (`<Typeset>`: quotes, dashes, no-break spaces, small-caps acronyms in
  * running text), never a link whose text is an address, a DOI or a file name. A link whose text is a
- * page reference ("p. 5", "SI p. 15", the "p. 4" of "Table 1 (p. 4)") is a rubric page mark.
+ * page reference ("p. 5", "SI p. 15", the "p. 4" of "Table 1 (p. 4)") is a page mark.
  *
  * `context="cell"` draws a sub-line on its own line (a table's Article cell: cite, then title, then
  * place) and marks no acronyms (table cells are in the sans); in running text it stays inline.

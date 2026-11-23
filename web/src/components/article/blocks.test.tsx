@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest"
 
 import { TooltipProvider } from "@/components/ui/tooltip"
 import type { Block, FigureBlock, Section } from "@/lib/data"
+import { NO_IDENTITIES } from "@/lib/identity"
 
 import { ArticleProvider, type ArticleContextValue } from "./article-context"
 import { figuresOf } from "./article-model"
@@ -36,6 +37,7 @@ function withArticle(ui: ReactElement, value: Partial<ArticleContextValue> = {})
           manuscript: false,
           lookup: null,
           openFigure: null,
+          identities: NO_IDENTITIES,
           ...value,
         }}
       >
@@ -69,20 +71,66 @@ describe("Blocks", () => {
     )
   })
 
-  it("draws fields as a hanging-label list", () => {
-    const { container } = renderBlocks([
+  it("draws fields, each label over its value, marked as its profile says", () => {
+    const blocks: Block[] = [
       {
         t: "fields",
         items: [
           { label: "Goal", c: ["Spell invented words"] },
-          { label: "Figure", c: ["Fig. 1, p. 4"] },
+          { label: "Season", c: ["Spring"] },
         ],
       },
-    ])
+    ]
+    const identities = {
+      sections: { task: ["clipboard-list", "method"] as const },
+      labels: { Goal: ["target", "framing"] as const },
+    }
+    const { container } = render(
+      withArticle(<Blocks blocks={blocks} pdf={PDF} section="task" />, { identities })
+    )
     const terms = container.querySelectorAll("dl dt")
-    expect([...terms].map((t) => t.textContent)).toEqual(["Goal", "Figure"])
-    expect(terms[0]).toHaveClass("label")
+    expect([...terms].map((t) => t.textContent)).toEqual(["Goal", "Season"])
+    // its own mark: the icon and the family's ink
+    expect(terms[0]!.querySelector("svg[data-family='framing']")).not.toBeNull()
+    expect(terms[0]!.firstElementChild).toHaveClass("text-id-framing")
+    // none of its own: the section's family, no icon
+    expect(terms[1]!.querySelector("svg")).toBeNull()
+    expect(terms[1]!.firstElementChild).toHaveClass("text-id-method")
     expect(container.querySelectorAll("dl dd")[0]).toHaveTextContent("Spell invented words")
+  })
+
+  it("puts the short values first, the paragraphs next, and what is not reported in one line", () => {
+    const blocks: Block[] = [
+      {
+        t: "fields",
+        items: [
+          { label: "Goal", c: ["Map the soil's water. Then compare two invented grids."] },
+          { label: "Loop", c: ["Offline"] },
+          { label: "Causal", c: [{ t: "muted", text: "not reported" }] },
+          { label: "Code", c: [{ t: "a", href: "https://example.org/code", text: "example.org" }] },
+          { label: "Figure", c: ["Fig. 1, p. 4"] },
+          { label: "Parameters", c: ["not reported"] },
+          { label: "Season", c: ["not applicable"] },
+        ],
+      },
+    ]
+    const { container } = render(withArticle(<Blocks blocks={blocks} pdf={PDF} />))
+    const lists = container.querySelectorAll("dl")
+    expect(lists).toHaveLength(2)
+    // the grid of short values: a few words, no link, no sentence
+    expect([...lists[0]!.querySelectorAll("dt")].map((t) => t.textContent)).toEqual([
+      "Loop",
+      "Figure",
+    ])
+    // the paragraphs, in their order
+    expect([...lists[1]!.querySelectorAll("dt")].map((t) => t.textContent)).toEqual([
+      "Goal",
+      "Code",
+    ])
+    // what is not known, once, in the record's words
+    expect(container.querySelector("[data-unknown-fields]")).toHaveTextContent(
+      "Not reported: Causal, Parameters · Not applicable: Season"
+    )
   })
 
   it("marks the pages a source cites: the paper's open its PDF there, the SI's are named", () => {
@@ -295,25 +343,37 @@ describe("the key metrics table", () => {
 })
 
 describe("GlossedSection", () => {
-  it("puts the notes in an aside after the text they gloss, and folds provenance", () => {
+  it("heads a section with its icon, puts each note after its text, folded, and folds provenance", () => {
     const section: Section = {
       id: "siting",
       title: "Invented siting",
       blocks: [
         { t: "p", c: ["Some text (p. 4)."] },
         { t: "quote", c: ["Quoted words."], cite: ["p. 4"] },
+        { t: "p", c: ["More text."] },
       ],
     }
+    const identities = { sections: { siting: ["map-pin", "data"] as const }, labels: {} }
     const { container, rerender } = render(
-      withArticle(<GlossedSection section={section} number={3} pdf={PDF} />)
+      withArticle(<GlossedSection section={section} pdf={PDF} />, { identities })
     )
     const region = screen.getByRole("region", { name: /Invented siting/ })
     expect(region).toHaveAttribute("id", "siting")
-    expect(within(region).getByRole("heading", { level: 2 })).toHaveTextContent(
-      /^3\s*Invented siting$/
-    )
-    const aside = container.querySelector("aside")
-    expect(aside).toContainElement(screen.getByRole("figure"))
+    const heading = within(region).getByRole("heading", { level: 2 })
+    expect(heading).toHaveTextContent(/^Invented siting$/)
+    expect(heading.querySelector("svg[data-family='data']")).not.toBeNull()
+    // the quote follows the text it glosses, folded under its page; the text goes on after it
+    const fold = container.querySelector("details")!
+    expect(fold.querySelector("summary")).toHaveTextContent(/^Quote · p\.\s4$/)
+    expect(fold).toContainElement(container.querySelector("figure"))
+    const texts = container.querySelectorAll("p.reading")
+    expect(texts).toHaveLength(2)
+    expect(texts[0]).toHaveTextContent(/^Some text/)
+    expect(texts[1]).toHaveTextContent("More text.")
+    expect(
+      container.querySelector("p.reading")!.compareDocumentPosition(fold) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
     // the text's mark and the note's share their page
     expect(container.querySelectorAll('[data-page="4"]')).toHaveLength(2)
 
@@ -325,7 +385,6 @@ describe("GlossedSection", () => {
             title: "Sources and provenance",
             blocks: [{ t: "fields", items: [{ label: "Paper", c: ["Invented"] }] }],
           }}
-          number={9}
           pdf={PDF}
         />
       )

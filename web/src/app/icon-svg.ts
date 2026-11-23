@@ -10,8 +10,8 @@ import { GLYPH_CAP_HEIGHT, GLYPHS } from "./icon-glyphs"
 
 /** The colours of the tokens (globals.css), as sRGB for image formats. */
 export const ICON_COLORS = {
-  light: { paper: "#f9f5ed", ink: "#1f1915", rubric: "#b43722" },
-  dark: { paper: "#1a1713", ink: "#e2ddd4", rubric: "#e98667" },
+  light: { paper: "#f9f5ed", ink: "#1f1915", rubric: "#9b3e3b" },
+  dark: { paper: "#1a1713", ink: "#e2ddd4", rubric: "#e6958a" },
 } as const
 
 /** The letter the mark shows: APP_NAME's first, as a capital. */

@@ -83,7 +83,7 @@ function Suggestions({ path }: { path: string }) {
               <li key={s.href}>
                 <Link
                   href={s.href}
-                  className="item-title text-foreground decoration-[color-mix(in_oklab,var(--rubric)_55%,transparent)] decoration-1 underline-offset-[0.18em] hover:underline"
+                  className="item-title text-foreground decoration-link-line decoration-1 underline-offset-[0.18em] hover:underline"
                 >
                   {s.label}
                 </Link>

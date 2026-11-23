@@ -13,6 +13,9 @@ import {
   type RefObject,
 } from "react"
 
+import { IdentityIcon } from "@/components/content/identity"
+import type { Identities } from "@/lib/data"
+import { labelIdentity } from "@/lib/identity"
 import { cn } from "@/lib/utils"
 
 import { CellPopover, useCellPopover } from "./cell-popover"
@@ -51,6 +54,8 @@ export interface HubDataTableProps<R extends HubRow> {
   empty: ReactNode
   /** The body (to find a row's element). */
   bodyRef?: RefObject<HTMLTableSectionElement | null>
+  /** The bibliography's marks: a column named as one of its labels heads with its icon. */
+  identities?: Identities
   className?: string
 }
 
@@ -97,8 +102,8 @@ function pinClasses(pin: HubColumnMeta["pin"], head = false): string {
     head ? "z-[25]" : "z-10",
     "after:pointer-events-none after:absolute after:inset-y-0 after:w-2.5 after:opacity-0 after:transition-opacity after:duration-150 print:after:hidden",
     pin === "left"
-      ? "left-0 after:-right-2.5 after:bg-[linear-gradient(to_right,color-mix(in_oklab,var(--foreground)_10%,transparent),transparent)] group-data-[scrolled-start]/box:after:opacity-100"
-      : "right-0 after:-left-2.5 after:bg-[linear-gradient(to_left,color-mix(in_oklab,var(--foreground)_10%,transparent),transparent)] group-data-[scrolled-end]/box:after:opacity-100"
+      ? "left-0 after:-right-2.5 after:bg-linear-to-r after:from-foreground/10 group-data-[scrolled-start]/box:after:opacity-100"
+      : "right-0 after:-left-2.5 after:bg-linear-to-l after:from-foreground/10 group-data-[scrolled-end]/box:after:opacity-100"
   )
 }
 
@@ -113,7 +118,7 @@ function pinClasses(pin: HubColumnMeta["pin"], head = false): string {
  * rows only the visible ones are drawn.
  */
 export function HubDataTable<R extends HubRow>(props: HubDataTableProps<R>) {
-  const { table, label, lines, empty, className } = props
+  const { table, label, lines, empty, identities, className } = props
   const boxRef = useRef<HTMLDivElement | null>(null)
   // The box's inner width in rem, measured (0 until then): the columns share it.
   const [available, setAvailable] = useState(0)
@@ -215,6 +220,16 @@ export function HubDataTable<R extends HubRow>(props: HubDataTableProps<R>) {
                   const meta = column.columnDef.meta
                   const title = meta?.title ?? column.id
                   const sorted = column.getIsSorted()
+                  const identity = identities ? labelIdentity(identities, title) : null
+                  const named = (
+                    <>
+                      <IdentityIcon
+                        identity={identity}
+                        className="mr-1 inline size-3.5 -translate-y-px align-[-0.125em]"
+                      />
+                      {title}
+                    </>
+                  )
                   return (
                     <th
                       key={header.id}
@@ -238,7 +253,7 @@ export function HubDataTable<R extends HubRow>(props: HubDataTableProps<R>) {
                       )}
                     >
                       {/* On paper the label alone (a repeated head drops a button's text). */}
-                      <span className="hidden label break-words print:block">{title}</span>
+                      <span className="hidden label break-words print:block">{named}</span>
                       {column.getCanSort() ? (
                         <button
                           type="button"
@@ -250,11 +265,11 @@ export function HubDataTable<R extends HubRow>(props: HubDataTableProps<R>) {
                             meta?.numeric && "flex-row-reverse text-right"
                           )}
                         >
-                          <span className="min-w-0 break-words">{title}</span>
+                          <span className="min-w-0 break-words">{named}</span>
                           <SortChevron sorted={sorted} />
                         </button>
                       ) : (
-                        <span className="block label break-words print:hidden">{title}</span>
+                        <span className="block label break-words print:hidden">{named}</span>
                       )}
                     </th>
                   )

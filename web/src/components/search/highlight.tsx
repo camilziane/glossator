@@ -2,7 +2,6 @@ import { Fragment, type ReactNode } from "react"
 
 import { foldText } from "@/lib/data"
 import { typesetParts, type TypesetLang, type TypesetPart } from "@/lib/typeset"
-import { cn } from "@/lib/utils"
 
 /**
  * Highlighting of search terms in plain text, as React elements (never HTML): accent- and
@@ -123,7 +122,7 @@ export function matchRanges(text: string, terms: readonly string[]): MatchRange[
 }
 
 /**
- * Whether a match is drawn strong (the full highlighter) or light: with `grade`, a match of one word
+ * Whether a match is drawn strong (the full fill) or light: with `grade`, a match of one word
  * among several typed is light, a phrase found whole is strong; a query of one word is strong.
  */
 function isStrong(range: MatchRange, terms: readonly string[], grade: boolean): boolean {
@@ -132,15 +131,9 @@ function isStrong(range: MatchRange, terms: readonly string[], grade: boolean): 
   return typed <= 1 || range.words >= 2
 }
 
-/** A light match: a thinner, paler stroke (ink on it keeps its contrast: it only gets paler). */
-const LIGHT = "[box-shadow:inset_0_-0.3em_0_color-mix(in_oklab,var(--highlight)_70%,transparent)]"
-
+/** A match; a single word's is the same fill, lighter (`mark[data-match="light"]`, globals.css). */
 function Mark({ strong, children }: { strong: boolean; children: ReactNode }) {
-  return (
-    <mark data-match={strong ? "strong" : "light"} className={cn(!strong && LIGHT)}>
-      {children}
-    </mark>
-  )
+  return <mark data-match={strong ? "strong" : "light"}>{children}</mark>
 }
 
 /** `text` with every match of `terms` in a <mark>; `grade`: single words lighter than phrases. */

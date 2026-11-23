@@ -245,6 +245,36 @@ export const HubTableSchema = z.object({
   rows: z.array(z.array(InlinesSchema)),
 })
 
+/** A mark: [icon, family] (lucide's name, one of `FAMILIES` in `@/lib/identity`). */
+export type Mark = readonly [string, string]
+
+function isMark(v: unknown): v is Mark {
+  return Array.isArray(v) && v.length === 2 && v.every((x) => typeof x === "string")
+}
+
+/** The marks of a map, those that are [icon, family]; anything else is dropped. */
+function marks(v: unknown): Record<string, Mark> {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return {}
+  return Object.fromEntries(
+    Object.entries(v).filter((entry): entry is [string, Mark] => isMark(entry[1]))
+  )
+}
+
+/**
+ * How the page marks a bibliography's sections (by id) and labels (a field's, a tile's), as its
+ * profile says (profiles.identities). Absent from data written before them, or malformed: none.
+ */
+export const IdentitiesSchema = z.preprocess(
+  (v) => {
+    const raw = v && typeof v === "object" ? (v as { sections?: unknown; labels?: unknown }) : {}
+    return { sections: marks(raw.sections), labels: marks(raw.labels) }
+  },
+  z.object({
+    sections: z.record(z.string(), z.tuple([z.string(), z.string()]).readonly()),
+    labels: z.record(z.string(), z.tuple([z.string(), z.string()]).readonly()),
+  })
+)
+
 /** A bibliography's own fields; its tables and articles are read one by one (library.ts). */
 export const BibliographyFieldsSchema = z.object({
   name: z.string().min(1),
@@ -253,6 +283,7 @@ export const BibliographyFieldsSchema = z.object({
   profile: text,
   scope: text,
   complete: z.preprocess((v) => v ?? 0, z.number().int()),
+  identities: IdentitiesSchema,
 })
 
 export const BibliographySchema = BibliographyFieldsSchema.extend({
@@ -368,6 +399,7 @@ export type Notice = z.infer<typeof NoticeSchema>
 export type ArticleCard = z.infer<typeof ArticleCardSchema>
 export type Article = z.infer<typeof ArticleSchema>
 export type BibliographyFields = z.infer<typeof BibliographyFieldsSchema>
+export type Identities = z.infer<typeof IdentitiesSchema>
 export type HubTable = z.infer<typeof HubTableSchema>
 export type Bibliography = z.infer<typeof BibliographySchema>
 export type Triage = z.infer<typeof TriageSchema>

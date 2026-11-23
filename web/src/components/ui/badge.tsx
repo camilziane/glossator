@@ -19,7 +19,7 @@ const badgeVariants = cva(
         success: "text-success",
         outline: "text-foreground",
         ghost: "text-muted-foreground",
-        link: "text-foreground underline decoration-[color-mix(in_oklab,var(--rubric)_55%,transparent)] underline-offset-[0.18em] hover:decoration-rubric",
+        link: "text-foreground underline decoration-link-line underline-offset-[0.18em] hover:decoration-current",
       },
     },
     defaultVariants: {

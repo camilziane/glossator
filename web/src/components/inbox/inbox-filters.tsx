@@ -454,7 +454,7 @@ function Choice({
         checked={checked}
         disabled={disabled}
         onChange={(e) => onChange(e.target.checked)}
-        className="size-4 shrink-0 accent-[var(--foreground)]"
+        className="size-4 shrink-0 accent-foreground"
       />
       <span className="min-w-0 flex-1 truncate">{children}</span>
       {count !== undefined ? (

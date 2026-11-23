@@ -502,8 +502,8 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
 // ---------------------------------------------------------------------------- the decision bar
 
 /**
- * Reject r and Accept a → its bibliography: two quiet buttons of one size, Accept underlined in
- * rubric; what the paper's state is on the left (its place in the list, or "Rejected · Undo").
+ * Reject r and Accept a → its bibliography: two quiet buttons of one size, Accept underlined (the
+ * link line); what the paper's state is on the left (its place in the list, or "Rejected · Undo").
  */
 function DecisionBar({
   row,
@@ -652,7 +652,7 @@ function DecisionBar({
             onClick={click("accept")}
             className={button}
           >
-            <span className="underline decoration-[color-mix(in_oklab,var(--rubric)_70%,transparent)] decoration-1 underline-offset-[0.22em] group-hover/button:decoration-rubric">
+            <span className="underline decoration-link-line decoration-1 underline-offset-[0.22em] group-hover/button:decoration-current">
               Accept
             </span>
             {keys ? (

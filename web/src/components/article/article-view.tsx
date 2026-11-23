@@ -14,19 +14,14 @@ import {
   type LibraryIndex,
   type Section,
 } from "@/lib/data"
+import { APP, sectionIdentity } from "@/lib/identity"
 import { articleParams } from "@/lib/url-state"
 import { cn } from "@/lib/utils"
 
 import { ArticleProvider, type ArticleContextValue } from "./article-context"
 import { ArticleFacts } from "./article-facts"
 import { ArticleHeader } from "./article-header"
-import {
-  articleFacts,
-  FACTS_BESIDE_TITLE,
-  figuresOf,
-  isQuietSection,
-  keyMetricsSection,
-} from "./article-model"
+import { factsOf, figuresOf, keyMetricsSection } from "./article-model"
 import { ArticleNotFound } from "./article-not-found"
 import { Colophon } from "./colophon"
 import { figureSource } from "./figure-block"
@@ -60,13 +55,13 @@ export function ArticleView() {
 }
 
 /**
- * Signes de renvoi lit (`usePageMarks`): a page mark underlined in rubric, a note in ink with its
- * rule in rubric.
+ * Signes de renvoi lit (`usePageMarks`): a page mark in ink, underlined in ink; a note in ink with
+ * its rule in ink.
  */
 const LIT_STYLE = cn(
-  "[&_.page-mark[data-lit]]:underline [&_.page-mark[data-lit]]:decoration-rubric [&_.page-mark[data-lit]]:decoration-[1.5px]",
+  "[&_.page-mark[data-lit]]:text-foreground [&_.page-mark[data-lit]]:underline [&_.page-mark[data-lit]]:decoration-foreground [&_.page-mark[data-lit]]:decoration-[1.5px]",
   "[&_[data-gloss-note]]:transition-[color,border-color] [&_[data-gloss-note]]:duration-150",
-  "[&_[data-gloss-note][data-lit]]:border-rubric [&_[data-gloss-note][data-lit]]:text-foreground"
+  "[&_[data-gloss-note][data-lit]]:border-foreground [&_[data-gloss-note][data-lit]]:text-foreground"
 )
 
 function ArticleReader({
@@ -99,12 +94,28 @@ function ArticleReader({
     }
   }, [view])
   const figuresId = sections.some((s) => s.id === "figures") ? "figures-strip" : "figures"
-  // The page's own bands (Key metrics moved up, Figures) have no number; the record's sections
-  // are numbered from 1, in their order.
+  // Each section with its identity (its icon in the slim bar); the page's own bands (Key metrics
+  // moved up, Figures) have their keys.
+  const identities = entry.bib.identities
   const entries: SectionEntry[] = [
-    ...(metrics ? [{ id: metrics.id, title: metrics.title, key: "m" }] : []),
-    ...(figures.length > 0 ? [{ id: figuresId, title: "Figures", key: "f" }] : []),
-    ...others.map((s, i) => ({ id: s.id, title: s.title, number: i + 1 })),
+    ...(metrics
+      ? [
+          {
+            id: metrics.id,
+            title: metrics.title,
+            key: "m",
+            identity: sectionIdentity(identities, metrics.id),
+          },
+        ]
+      : []),
+    ...(figures.length > 0
+      ? [{ id: figuresId, title: "Figures", key: "f", identity: APP.figures }]
+      : []),
+    ...others.map((s) => ({
+      id: s.id,
+      title: s.title,
+      identity: sectionIdentity(identities, s.id),
+    })),
   ]
   const [active, setActive] = useScrollSpy(
     entries.map((e) => e.id),
@@ -143,13 +154,11 @@ function ArticleReader({
         const i = figures.findIndex((f) => figureSource(f.block).src === src)
         if (i >= 0) setFigure(i)
       },
+      identities,
     }),
-    [pdf, article, view, lib, figures]
+    [pdf, article, view, lib, figures, identities]
   )
-  const facts = view ? articleFacts(view.glance, view.lab, metrics !== undefined) : []
-  // The facts that do not fit beside the title go on beside the first section without notes.
-  const continued = facts.slice(FACTS_BESIDE_TITLE)
-  const quiet = continued.length > 0 ? others.find(isQuietSection) : undefined
+  const facts = view ? factsOf(view.glance, metrics !== undefined) : []
 
   return (
     <ArticleProvider value={context}>
@@ -164,15 +173,9 @@ function ArticleReader({
         place={place}
         from={from}
       />
-      <Page width="glossed">
+      <Page width="column">
         <article ref={rootRef} aria-labelledby={TITLE_ID} className={LIT_STYLE}>
-          {/* The facts span the title, the lede and a last flexible row: they never push the lede. */}
-          <div
-            className={cn(
-              GRID,
-              "lg:grid-rows-[auto_auto_auto_1fr] print:grid-rows-[auto_auto_auto_1fr]"
-            )}
-          >
+          <div className={GRID}>
             <ArticleHeader
               entry={entry}
               view={view ?? undefined}
@@ -181,11 +184,9 @@ function ArticleReader({
               titleRef={titleRef}
               citeOpen={!barShown && citeOpen}
               onCiteOpenChange={setCiteOpen}
-              top={cn(AT.text, "lg:row-start-1")}
-              main={cn(AT.text, "mt-2 lg:row-start-2")}
             />
             {view && view.lead.length > 0 ? (
-              <p className={cn(AT.text, "mt-8 lede text-foreground lg:row-start-3")}>
+              <p className={cn(AT.text, "mt-8 lede text-foreground")}>
                 <InlineWithPages parts={view.lead} pdf={pdf} />
               </p>
             ) : null}
@@ -194,11 +195,7 @@ function ArticleReader({
                 facts={facts}
                 sections={sections}
                 pdf={pdf}
-                hiddenFrom={quiet ? FACTS_BESIDE_TITLE : undefined}
-                className={cn(
-                  AT.gloss,
-                  "mt-8 lg:row-span-3 lg:row-start-2 lg:mt-2 lg:self-start print:row-span-3 print:row-start-2 print:mt-2"
-                )}
+                className={cn(AT.gloss, "mt-8")}
               />
             ) : null}
             {view ? null : (
@@ -217,24 +214,19 @@ function ArticleReader({
             />
           ) : null}
           {figures.length > 0 ? (
-            <SectionFrame id={figuresId} title="Figures" className="print:hidden">
-              <div className={cn(AT.wide, "xl:row-start-1")}>
+            <SectionFrame
+              id={figuresId}
+              title="Figures"
+              identity={APP.figures}
+              className="print:hidden"
+            >
+              <div className={AT.wide}>
                 <FiguresStrip figures={figures} onOpen={setFigure} />
               </div>
             </SectionFrame>
           ) : null}
-          {others.map((section: Section, i) => (
-            <GlossedSection
-              key={section.id}
-              section={section}
-              number={i + 1}
-              pdf={pdf}
-              aside={
-                section === quiet ? (
-                  <ArticleFacts continued facts={continued} sections={sections} pdf={pdf} />
-                ) : undefined
-              }
-            />
+          {others.map((section: Section) => (
+            <GlossedSection key={section.id} section={section} pdf={pdf} />
           ))}
 
           {view ? (

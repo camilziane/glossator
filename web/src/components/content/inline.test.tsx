@@ -112,7 +112,7 @@ describe("InlineContent", () => {
     )
   })
 
-  it("draws a page reference as a rubric page mark that opens the PDF", () => {
+  it("draws a page reference as a quiet page mark that opens the PDF", () => {
     renderParts([
       "As shown (",
       { t: "a", href: "library/ml/articles/k/paper.pdf", text: "p. 5" },
@@ -124,7 +124,7 @@ describe("InlineContent", () => {
     const p5 = screen.getByRole("link", { name: /p\. 5/ })
     expect(p5).toHaveAttribute("data-page", "5")
     expect(p5).toHaveAttribute("href", "/library/ml/articles/k/paper.pdf")
-    expect(p5).toHaveClass("text-rubric", "page-mark")
+    expect(p5).toHaveClass("text-muted-foreground", "page-mark")
     expect(p5).toHaveAccessibleName(/^p\. 5 ?\(PDF page 5, new tab\)$/)
     const p4 = screen.getByRole("link", { name: /p\. 4/ })
     expect(p4).toHaveTextContent(/^p\. 4/)

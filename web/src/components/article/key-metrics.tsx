@@ -2,10 +2,12 @@
 
 import { ChevronRightIcon } from "lucide-react"
 
+import { IdentityIcon } from "@/components/content/identity"
 import { Typeset } from "@/components/content/typeset"
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { plainText, type Inlines, type Section, type TableBlock } from "@/lib/data"
 import { formatNumber } from "@/lib/format"
+import { APP } from "@/lib/identity"
 import { typeset } from "@/lib/typeset"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { cn } from "@/lib/utils"
@@ -23,7 +25,6 @@ import {
 } from "./article-model"
 import { Blocks } from "./blocks"
 import { CopyCitation, metricCitation, type Citation } from "./copy-citation"
-import { noteFrame } from "./gloss-notes"
 import { GlossedSection, SectionFrame } from "./glossed-section"
 import { AT } from "./grid"
 import { InlineWithPages } from "./inline-pages"
@@ -106,33 +107,34 @@ export function KeyMetricsSection({
         const citation = cite(row, col)
         const source = col.source >= 0 ? (row.cells[col.source] ?? []) : []
         return (
-          <div key={i} className="contents">
-            <p className={cn(AT.text, "reading", i === 0 && "xl:row-start-1")}>
+          <div key={i} className={AT.text}>
+            <p className="reading">
               <MetricSentence row={row} col={col} pdf={pdf} />
             </p>
-            <aside className={cn(AT.gloss, i === 0 && "xl:row-start-1", "lg:pt-1")}>
-              <p
-                data-gloss-note=""
-                data-copyable=""
-                className={cn(
-                  "group/copy gloss-note flex items-baseline gap-1 font-sans text-small text-muted-foreground",
-                  noteFrame("margin")
-                )}
-              >
-                <span className="min-w-0">
-                  {source.length > 0 ? (
-                    <InlineWithPages parts={source} pdf={pdf} acronyms={false} />
-                  ) : null}
-                </span>
-                {citation ? (
-                  <CopyCitation
-                    citation={citation}
-                    what="the metric"
-                    className="-my-1 shrink-0 self-center"
-                  />
+            <p
+              data-gloss-note=""
+              data-copyable=""
+              className="group/copy gloss-note mt-1 flex items-baseline gap-1.5 font-sans text-small text-muted-foreground"
+            >
+              {source.length > 0 ? (
+                <IdentityIcon
+                  identity={APP.paper}
+                  className="size-3.5 translate-y-0.5 self-start"
+                />
+              ) : null}
+              <span className="min-w-0">
+                {source.length > 0 ? (
+                  <InlineWithPages parts={source} pdf={pdf} acronyms={false} />
                 ) : null}
-              </p>
-            </aside>
+              </span>
+              {citation ? (
+                <CopyCitation
+                  citation={citation}
+                  what="the metric"
+                  className="-my-1 shrink-0 self-center"
+                />
+              ) : null}
+            </p>
           </div>
         )
       })}

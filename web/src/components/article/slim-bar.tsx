@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, type RefObject } from "react"
 
 import { CiteLine } from "@/components/content/cite"
 import { CiteMenu } from "@/components/content/cite-menu"
+import { IdentityIcon } from "@/components/content/identity"
 import { PAGE_GUTTERS } from "@/components/shell/page"
 import { Button } from "@/components/ui/button"
 import {
@@ -16,11 +17,11 @@ import {
 } from "@/components/ui/dropdown-menu"
 import type { Article } from "@/lib/data"
 import { formatNumber } from "@/lib/format"
+import type { Identity } from "@/lib/identity"
 import { typeset } from "@/lib/typeset"
 import { cn } from "@/lib/utils"
 
 import { Pager } from "./article-header"
-import { AT, GRID } from "./grid"
 import type { ListPosition } from "./list-position"
 import { goToSection, TOC_BAR_ID, TOC_BAR_VAR } from "./use-scroll-spy"
 
@@ -30,8 +31,8 @@ const BAR_HEIGHT = "2.5rem"
 export interface SectionEntry {
   id: string
   title: string
-  /** The record's sections are numbered from 1; the page's own bands (Key metrics, Figures) are not. */
-  number?: number
+  /** Its identity (its icon in its family's ink), when its profile marks it. */
+  identity?: Identity | null
   /** The page's key for it ("m", "f"). */
   key?: string
 }
@@ -57,10 +58,10 @@ export function useScrolledAway(target: RefObject<HTMLElement | null>): boolean 
 }
 
 /**
- * The article's slim bar, once its title has scrolled away: 40 px under the top bar, on the glossed
- * grid: the cite in the margin, the section being read over the text, the Sections menu and the
- * folio (‹ 8 of 49 ›) in the gloss. A 1 px rubric line under it grows with the reading. Out of
- * sight (and out of the keyboard's way) while the title shows.
+ * The article's slim bar, once its title has scrolled away: 40 px under the top bar, over the
+ * article's column: the cite and the section being read (its icon, its name), then the Cite and
+ * Sections menus and the folio (‹ 8 of 49 ›). A 1 px ink line under it grows with the reading.
+ * Out of sight (and out of the keyboard's way) while the title shows.
  */
 export function SlimBar({
   article,
@@ -111,36 +112,24 @@ export function SlimBar({
       )}
     >
       <div className={cn("h-full", PAGE_GUTTERS)}>
-        <div className={cn(GRID, "mx-auto h-full max-w-[68.25rem] items-center")}>
-          {/* A long cite overflows into the page's left margin rather than being cut. */}
-          <p className="hidden min-w-0 justify-end font-serif text-note whitespace-nowrap xl:col-start-1 xl:flex">
-            <CiteLine card={article} venue={false} />
-          </p>
-          <p className={cn(AT.text, "flex min-w-0 items-baseline gap-2 font-sans text-ui")}>
-            <span className="truncate-fade min-w-0 xl:hidden">
+        <div className="mx-auto flex h-full max-w-[44rem] items-center gap-3">
+          <p className="flex min-w-0 flex-1 items-baseline gap-2 font-sans text-ui">
+            <span className="truncate-fade min-w-0 shrink-[2]">
               <CiteLine card={article} venue={false} className="font-serif text-note" />
             </span>
             {current ? (
-              <span className="hidden min-w-0 items-baseline gap-1.5 sm:flex xl:flex">
-                <span aria-hidden="true" className="text-muted-foreground xl:hidden">
+              <span className="hidden min-w-0 items-center gap-1.5 self-center sm:flex">
+                <span aria-hidden="true" className="text-muted-foreground">
                   ·
                 </span>
-                {current.number !== undefined ? (
-                  <span className="text-rubric num">{current.number}</span>
-                ) : null}
+                <IdentityIcon identity={current.identity ?? null} className="size-3.5" />
                 <span className="truncate-fade min-w-0 text-foreground">
                   {typeset(current.title)}
                 </span>
               </span>
             ) : null}
           </p>
-          {/* The controls: in the gloss column from 1024 px, at the bar's right end below. */}
-          <div
-            className={cn(
-              AT.gloss,
-              "absolute inset-y-0 right-0 flex items-center justify-end gap-1 bg-background pr-2 pl-2 sm:pr-4 lg:static lg:bg-transparent lg:p-0"
-            )}
-          >
+          <div className="flex shrink-0 items-center justify-end gap-1">
             <CiteMenu
               card={article}
               open={shown && citeOpen}
@@ -213,9 +202,11 @@ function SectionsMenu({
               // Once the menu has closed: the jump then takes the focus to the section.
               window.setTimeout(() => goToSection(s.id), 0)
             }}
-            className={cn("items-baseline gap-2.5", s.id === active && "font-medium")}
+            className={cn("items-center gap-2.5", s.id === active && "font-medium")}
           >
-            <span className="w-4 shrink-0 text-right text-rubric num">{s.number ?? ""}</span>
+            <span className="flex w-4 shrink-0 justify-center">
+              <IdentityIcon identity={s.identity ?? null} />
+            </span>
             <span className="min-w-0 flex-1 font-serif text-note">{typeset(s.title)}</span>
             {s.key ? <DropdownMenuShortcut>{s.key}</DropdownMenuShortcut> : null}
           </DropdownMenuItem>

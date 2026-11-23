@@ -83,9 +83,9 @@ export function Clamp({
   )
 }
 
-/** A title in a row: the serif's item size, lining figures; underlined in rubric on hover. */
+/** A title in a row: the serif's item size, lining figures; underlined (the link line) on hover. */
 const TITLE =
-  "font-serif text-item font-semibold text-pretty text-foreground [font-variant-numeric:lining-nums_proportional-nums] decoration-[color-mix(in_oklab,var(--rubric)_55%,transparent)] decoration-1 underline-offset-[0.18em] group-hover/title:underline"
+  "font-serif text-item font-semibold text-pretty text-foreground [font-variant-numeric:lining-nums_proportional-nums] decoration-link-line decoration-1 underline-offset-[0.18em] group-hover/title:underline"
 
 /** A citation under (or beside) a title: the serif's small size, old-style figures, muted. */
 const CITE =
@@ -97,7 +97,7 @@ export function HubInline({ parts }: { parts: Inlines }) {
   return parts.map((part, i) => {
     if (typeof part !== "string" && part.t === "art") {
       // A reference to an article: its citation in the serif (surnames in small caps), a faint
-      // rubric underline that firms on hover (a column of them must not shout).
+      // hairline underline that firms to its words' ink on hover (a column of them must not shout).
       const card = {
         key: part.key,
         cite: part.text,
@@ -111,7 +111,7 @@ export function HubInline({ parts }: { parts: Inlines }) {
         <Link
           key={i}
           href={routes.article(part.bib, part.key, undefined, { from })}
-          className="font-serif text-small [font-variant-numeric:oldstyle-nums_proportional-nums] underline decoration-[color-mix(in_oklab,var(--rubric)_30%,transparent)] decoration-1 underline-offset-[0.2em] transition-[text-decoration-color] duration-150 hover:decoration-rubric"
+          className="font-serif text-small [font-variant-numeric:oldstyle-nums_proportional-nums] underline decoration-rule-strong decoration-1 underline-offset-[0.2em] transition-[text-decoration-color] duration-150 hover:decoration-current"
           tabIndex={-1}
         >
           <CiteLine card={card} separator=", " />

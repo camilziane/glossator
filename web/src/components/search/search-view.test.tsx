@@ -224,14 +224,49 @@ describe("<SearchView>", () => {
       "href",
       "/library/ml/articles/novak2024/supplementary/table%20s1.pdf#page=2"
     )
-    // A supplementary file's name, in mono.
-    expect(within(group).getByText("table s1.pdf")).toHaveClass("font-mono")
+    // Each line says its kind, in its family's ink: the paper's text, a supplementary file (its
+    // name, a file name, is left to the reader).
+    const kinds = [...group.querySelectorAll<HTMLElement>("li[data-kind]")].map(
+      (li) => li.dataset.kind
+    )
+    expect(kinds).toEqual(["paper", "supplementary"])
+    expect(within(group).getByText("Supplementary")).toHaveClass("text-id-documents")
+    expect(within(group).queryByText("table s1.pdf")).toBeNull()
     // The words found together are one strong mark.
     const marks = [...group.querySelectorAll("mark")]
     expect(marks.find((m) => m.textContent === "toy filter")?.dataset.match).toBe("strong")
     // A passage cut mid-sentence says so with an ellipsis, never "...".
     expect(group).toHaveTextContent("…the toy filter raises accuracy on every invented session…")
     expect(group.textContent).not.toContain("...")
+  })
+
+  it("filters the results by kind in one click, and shows them all with a second", async () => {
+    const user = userEvent.setup()
+    mockApi()
+    await renderSearch("?q=toy+filter")
+    await screen.findByText("3 passages in 2 articles")
+    const filters = screen.getByRole("group", { name: "Show one kind of match" })
+    const chips = within(filters).getAllByRole("button")
+    expect(chips.map((c) => c.textContent)).toEqual([
+      "All 2",
+      `${method.title} 1`,
+      "Paper text 1",
+      "Supplementary 1",
+    ])
+    expect(within(filters).getByRole("button", { name: "All 2" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    )
+    // one kind: the articles that hold it, and their lines of that kind alone
+    await user.click(within(filters).getByRole("button", { name: "Paper text 1" }))
+    expect(screen.queryByRole("region", { name: ashworth.title })).toBeNull()
+    const group = screen.getByRole("region", { name: novak.title })
+    expect(
+      [...group.querySelectorAll<HTMLElement>("li[data-kind]")].map((li) => li.dataset.kind)
+    ).toEqual(["paper"])
+    // a second click: all of them again
+    await user.click(within(filters).getByRole("button", { name: "Paper text 1" }))
+    expect(screen.getByRole("region", { name: ashworth.title })).toBeInTheDocument()
   })
 
   it("shows a summary's passage under its section's title, never a raw field name", async () => {

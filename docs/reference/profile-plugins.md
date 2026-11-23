@@ -50,6 +50,7 @@ PROFILE = reference_profile(
     section="Study",
     lead="species",
     kinds={"survey": {"label": "Survey", "means": "counts or presence data from the field"}},
+    identities={"labels": {"Species": ("tag", "data"), "Sites": ("map-pin", "data")}},
 )
 ```
 
@@ -67,6 +68,7 @@ PROFILE = reference_profile(
 | `result_name`, `result_condition` | Optional. The hints a new result's TODOs give |
 | `figure` | Optional. The label and meaning of the profile's one figure role, `main` |
 | `order` | Optional. Bibliographies are listed by their profile's order, then by name. Default 0. |
+| `identities` | Optional. How the reading room marks the profile's sections (by id) and labels (a field's or a tile's): `{"sections": {id: (icon, family)}, "labels": {label: (icon, family)}}`. The icon is one of `glossator.profiles.ICONS` (lucide's names), the family one of `reference`, `framing`, `method`, `data`, `results`, `documents`, whose colour the icon and the label take. A label left out takes its section's family, without an icon. The details' section is marked a method, Key results the results, the quotes a document, unless it says otherwise. |
 
 The template's text is the curator's instructions for that bibliography. Start from a built-in one:
 `src/glossator/profiles/templates/ml.md`.
@@ -74,8 +76,9 @@ The template's text is the curator's instructions for that bibliography. Start f
 ## A plugin of its own form
 
 A profile can define its own sections, views, checks, Zotero tags and commands. It then defines
-`PROFILE = Profile(...)` directly. The fields of `Profile`, and the building blocks in `glossator.render` and
-`glossator.check`, are described in the `glossator.profiles` package.
+`PROFILE = Profile(...)` directly. The fields of `Profile` (its `identities` too: its own sections and labels, marked
+as above), and the building blocks in `glossator.render` and `glossator.check`, are described in the
+`glossator.profiles` package.
 
 ## Check a plugin
 

@@ -46,8 +46,9 @@ export function pageKey(ref: Pick<PageRef, "page" | "doc">): string {
 }
 
 /**
- * A page mark (signe de renvoi): the page reference in rubric, no underline; a link to the PDF at
- * that page when there is one. Its face and figures are its context's (old-style in the serif's
+ * A page mark (signe de renvoi): the page reference in the muted ink (the words come first; the page
+ * is there when wanted); a link to the PDF at that page when there is one, a dotted underline that
+ * turns solid, in ink, under the pointer. Its face and figures are its context's (old-style in the serif's
  * prose, lining in a sans table cell). `data-page` pairs it with the gloss notes of the same page
  * (the article lights both on hover and focus). On touch screens its target is 12 px taller and 6 px
  * wider each way, the lines unmoved (globals.css).
@@ -68,9 +69,12 @@ export function PageMark({
   className?: string
 }) {
   const classes = cn(
-    "page-mark font-medium whitespace-nowrap text-rubric no-underline",
-    href &&
-      "decoration-[color-mix(in_oklab,var(--rubric)_55%,transparent)] underline-offset-[0.18em] hover:underline",
+    "page-mark whitespace-nowrap text-muted-foreground",
+    // A link says so without its colour (WCAG 1.4.1): a quiet dotted underline, solid under the
+    // pointer.
+    href
+      ? "underline decoration-link-line decoration-dotted underline-offset-[0.2em] hover:text-foreground hover:decoration-solid"
+      : "no-underline",
     className
   )
   const key = pageKey({ page, doc })
